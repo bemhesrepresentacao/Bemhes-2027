@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MARCÃO DA GRAXA — Portal de Gestão e Operações</title>
+    <title>MARCÃO DA GRAXA — Cadastro de Clientes</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,14 +22,14 @@
             theme: {
                 extend: {
                     colors: {
-                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
-                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
-                        trator: '#D9531E',       /* Laranja vibrante do trator */
-                        tratorHover: '#B84214',  /* Laranja escuro para hover */
-                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
-                        petroleoHover: '#153448',/* Azul escuro para hover */
-                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
-                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                        creme: '#F7F3EA',
+                        cremeEscuro: '#ECE5D5',
+                        trator: '#D9531E',
+                        tratorHover: '#B84214',
+                        petroleo: '#1E4863',
+                        petroleoHover: '#153448',
+                        aco: '#1C2226',
+                        ambar: '#E08E2B',
                     },
                     fontFamily: {
                         display: ['Oswald', 'sans-serif'],
@@ -41,7 +41,6 @@
     </script>
 
     <style>
-        /* Padrão sutil de textura industrial no fundo creme */
         body {
             background-color: #F7F3EA;
             background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
@@ -49,39 +48,51 @@
             color: #1C2226;
         }
 
-        /* Estilo de borda chanfrada/robusta para os cards */
-        .card-industrial {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            border-bottom-width: 6px;
+        .input-industrial {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: 1.5px solid rgba(28, 34, 38, 0.2);
+            border-radius: 0.65rem;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.875rem;
+            color: #1C2226;
+            transition: all 0.2s ease;
         }
 
-        .card-industrial:hover {
-            transform: translateY(-4px);
+        .input-industrial:focus {
+            outline: none;
+            border-color: #1E4863;
+            box-shadow: 0 0 0 3px rgba(30, 72, 99, 0.15);
         }
 
-        .card-industrial:active {
-            transform: translateY(1px);
-            border-bottom-width: 2px;
+        .label-industrial {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #1C2226;
+            margin-bottom: 0.35rem;
         }
 
-        /* Animação suave de rotação da engrenagem no hover */
-        .group:hover .gear-spin {
-            transform: rotate(90deg);
-        }
-        .gear-spin {
-            transition: transform 0.5s ease-in-out;
+        @media print {
+            body { background: #FFFFFF !important; }
+            .no-print { display: none !important; }
+            .print-card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                margin-bottom: 1rem !important;
+                break-inside: avoid;
+            }
         }
     </style>
-
-       
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
 
     <!-- ===================================================================== -->
-    <!-- 1. CABEÇALHO (HEADER)                                                 -->
+    <!-- 1. CABEÇALHO (HEADER MANTIDO)                                          -->
     <!-- ===================================================================== -->
     <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
-        <!-- Faixa Institucional Superior -->
         <div class="bg-petroleo/90 border-b border-white/10">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
                 <div class="flex items-center gap-2 font-medium">
@@ -97,14 +108,12 @@
             </div>
         </div>
 
-        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
         <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
             <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                 
                 <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
                 <div class="flex-shrink-0 flex justify-center">
                     <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
-                        <!-- Certifique-se de que o arquivo "MARCÃO DA GRAXA.jpg" esteja na mesma pasta do HTML -->
                         <img 
                             src="MARCAO DA GRAXA.jpg" 
                             alt="Logo Oficial Marcão da Graxa" 
@@ -117,242 +126,369 @@
                 <!-- Título e Apresentação do Portal -->
                 <div class="text-center md:text-left flex-1 md:pl-6">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trator/10 text-trator font-bold text-xs uppercase tracking-wider mb-3 border border-trator/20">
-                        <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
-                        <span>Central de Acesso Rápido</span>
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                        <span>Integração Planilha Google • Aba CLIENTES</span>
                     </div>
                     <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
-                        PORTAL <span class="text-trator">CLIENTES</span>
+                        CADASTRO DE <span class="text-trator">CLIENTES</span>
                     </h1>
                     <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
-                        Bem-vindo ao portal de gestão. Selecione abaixo o módulo desejado para acessar o cadastro de clientes, gerar cotações, acompanhar o faturamento ou ajustar as configurações do sistema.
-                    </p>                   
+                        Preencha a ficha cadastral abaixo para gravar automaticamente os dados na aba <strong>CLIENTES</strong> da planilha oficial.
+                    </p>
                 </div>
-                
 
-<nav>
-    <a href="index.html"
-       class="inline-flex items-center gap-2 rounded-lg
-              bg-[#944b20] px-5 py-3 text-white font-semibold
-              shadow-lg transition-all duration-300
-              hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
-       title="Voltar para a página inicial">
-
-        <!-- Seta para a esquerda -->
-        <svg xmlns="http://www.w3.org/2000/svg"
-             width="24" height="24"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             stroke-width="2.5"
-             stroke-linecap="round"
-             stroke-linejoin="round">
-
-            <path d="M19 12H5"/>
-            <path d="M12 19l-7-7 7-7"/>
-        </svg>
-
-        <span>Voltar</span>
-    </a>
-</nav>
-              
+                <nav class="no-print flex flex-col sm:flex-row gap-2">
+                    <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vR_7CNxgVfZftz_iZj1U-02akb6iVfQcR7p-7UzU1ajKJQ-ULt2BqnJQngv8__L6TohoLV8baQHtgHA/pubhtml"
+                       target="_blank"
+                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-petroleo px-4 py-3 text-white text-sm font-semibold shadow-md transition-all hover:bg-petroleoHover"
+                       title="Visualizar planilha publicada">
+                        <i data-lucide="table" class="w-4 h-4"></i>
+                        <span>Ver Planilha</span>
+                    </a>
+                    <a href="index.html"
+                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#944b20] px-5 py-3 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
+                       title="Voltar para a página inicial">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+                        <span>Voltar</span>
+                    </a>
+                </nav>
 
             </div>
         </div>
     </header>
 
     <!-- ===================================================================== -->
-    <!-- 2. SEÇÃO PRINCIPAL DE ACESSO RÁPIDO (GRID DE 4 BOTÕES)                -->
+    <!-- 2. FORMULÁRIO PRINCIPAL DE CADASTRO DE CLIENTE                        -->
     <!-- ===================================================================== -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
         
-        <!-- Cabeçalho da Seção -->
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 border-b-2 border-aco/10 pb-4">
-            <div>
-                <h2 class="font-display text-2xl sm:text-3xl font-bold uppercase text-petroleo tracking-wide flex items-center gap-2.5">
-                    <span class="w-3 h-8 bg-trator rounded-sm inline-block"></span>
-                    Módulos do Sistema
-                </h2>
-                <p class="text-sm text-aco/70 mt-1">Clique em um dos botões abaixo para abrir a ferramenta correspondente.</p>
+        <form id="form-cadastro-cliente" onsubmit="salvarNaPlanilha(event)" class="space-y-8">
+
+            <!-- Barra Superior de Controle e Status de Conexão -->
+            <div class="bg-white rounded-2xl p-5 shadow-md border-2 border-aco/15 border-l-8 border-l-trator flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print-card">
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- IMPRIMIR CLIENTE? -->
+                    <div class="flex items-center gap-3 bg-creme px-4 py-2.5 rounded-xl border border-aco/15">
+                        <label for="imprimir-cliente" class="font-display text-sm font-bold uppercase text-aco tracking-wide flex items-center gap-2 cursor-pointer">
+                            <i data-lucide="printer" class="w-4 h-4 text-trator"></i>
+                            <span>Imprimir Cliente?</span>
+                        </label>
+                        <select id="imprimir-cliente" name="IMPRIMIR CLIENTE?" class="bg-white border border-aco/25 rounded-lg px-3 py-1 text-sm font-bold text-petroleo focus:outline-none focus:border-trator">
+                            <option value="NÃO">NÃO</option>
+                            <option value="SIM">SIM</option>
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="configurarUrlScript()" class="no-print inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-petroleo/10 hover:bg-petroleo hover:text-white text-petroleo text-xs font-bold uppercase tracking-wider border border-petroleo/20 transition-colors">
+                        <i data-lucide="link" class="w-4 h-4"></i>
+                        <span>URL da Planilha (Apps Script)</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end no-print">
+                    <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-xs font-bold uppercase tracking-wider border border-aco/20 transition-colors">
+                        <i data-lucide="printer" class="w-4 h-4 text-trator"></i>
+                        <span>Imprimir Ficha</span>
+                    </button>
+                    <button type="reset" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-red-50 text-red-700 text-xs font-bold uppercase tracking-wider border border-red-200 transition-colors">
+                        <i data-lucide="eraser" class="w-4 h-4"></i>
+                        <span>Limpar</span>
+                    </button>
+                </div>
             </div>
-            
-            <!-- Botão discreto para gerenciar os links diretamente na tela se desejar -->
-            <button 
-                type="button"
-                onclick="abrirModalLinks()"
-                class="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-xs font-semibold border border-aco/20 transition-colors shadow-sm"
-                title="Definir URLs de destino dos botões"
-            >
-                <i data-lucide="link" class="w-3.5 h-3.5 text-trator"></i>
-                <span>Gerenciar Links dos Botões</span>
-            </button>
+
+            <!-- BLOCO 1: IDENTIFICAÇÃO DO CLIENTE -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-petroleo print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-petroleo tracking-wide">
+                        01. Identificação do Cliente
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-2">
+                        <label for="id-cliente" class="label-industrial">ID</label>
+                        <input type="text" id="id-cliente" name="ID" placeholder="Ex: 0001" class="input-industrial font-semibold bg-creme/40">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="codigo-cliente" class="label-industrial">Código do Cliente</label>
+                        <input type="text" id="codigo-cliente" name="CODIGO DO CLIENTE" placeholder="Ex: 201.886" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="data-nascimento" class="label-industrial">Data de Nascimento</label>
+                        <input type="date" id="data-nascimento" name="DATA DE NASCIMENTO" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-4">
+                        <label for="grupo-familiar" class="label-industrial">Grupo Familiar</label>
+                        <input type="text" id="grupo-familiar" name="GRUPO FAMILIAR" placeholder="Nome do grupo ou rede familiar" class="input-industrial">
+                    </div>
+
+                    <div class="sm:col-span-2 lg:col-span-12">
+                        <label for="nome-cliente" class="label-industrial">Nome / Razão Social *</label>
+                        <input type="text" id="nome-cliente" name="NOME" required placeholder="Digite o nome completo ou razão social do cliente" class="input-industrial font-medium">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 2: CONTATOS E COMUNICAÇÃO -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-trator print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="phone-call" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-trator tracking-wide">
+                        02. Contatos & Comunicação
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-3">
+                        <label for="tipo-fone" class="label-industrial">Tipo Fone</label>
+                        <select id="tipo-fone" name="TIPO FONE" class="input-industrial">
+                            <option value="">Selecione...</option>
+                            <option value="COMERCIAL">Comercial</option>
+                            <option value="CELULAR">Celular</option>
+                            <option value="RESIDENCIAL">Residencial</option>
+                            <option value="FAZENDA">Fazenda / Rural</option>
+                            <option value="FINANCEIRO">Financeiro</option>
+                        </select>
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="telefone" class="label-industrial">Telefone</label>
+                        <input type="tel" id="telefone" name="TELEFONE" placeholder="(00) 0000-0000" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="fone-fixo" class="label-industrial">Fone Fixo</label>
+                        <input type="tel" id="fone-fixo" name="FONE FIXO" placeholder="(00) 0000-0000" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="whatsapp" class="label-industrial text-emerald-800">WhatsApp</label>
+                        <input type="tel" id="whatsapp" name="Watsapp" placeholder="(00) 90000-0000" class="input-industrial border-emerald-600/30 focus:border-emerald-600">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="fone-celular-1" class="label-industrial">Fone Celular 1</label>
+                        <input type="tel" id="fone-celular-1" name="FONE CELULAR1" placeholder="(00) 90000-0000" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="fone-celular-2" class="label-industrial">Fone Celular 2</label>
+                        <input type="tel" id="fone-celular-2" name="FONE CELULAR2" placeholder="(00) 90000-0000" class="input-industrial">
+                    </div>
+
+                    <div class="sm:col-span-2 lg:col-span-6">
+                        <label for="email-cliente" class="label-industrial">E-mail</label>
+                        <input type="email" id="email-cliente" name="EMAIL" placeholder="cliente@empresa.com.br" class="input-industrial">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 3: ENDEREÇO E LOCALIZAÇÃO -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-ambar print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-ambar text-white flex items-center justify-center">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-amber-800 tracking-wide">
+                        03. Endereço & Localização
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-3">
+                        <label for="cep" class="label-industrial">CEP</label>
+                        <input type="text" id="cep" name="CEP" placeholder="00000-000" maxlength="9" class="input-industrial">
+                    </div>
+
+                    <div class="sm:col-span-2 lg:col-span-9">
+                        <label for="endereco" class="label-industrial">Endereço</label>
+                        <input type="text" id="endereco" name="ENDERECO" placeholder="Ex: Av. Brasil, 1500 - Sala 02" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-5">
+                        <label for="bairro" class="label-industrial">Bairro</label>
+                        <input type="text" id="bairro" name="BAIRRO" placeholder="Nome do bairro ou zona rural" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-5">
+                        <label for="cidade" class="label-industrial">Cidade</label>
+                        <input type="text" id="cidade" name="CIDADE" placeholder="Ex: Mandaguari" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="estado" class="label-industrial">Estado</label>
+                        <select id="estado" name="ESTADO" class="input-industrial">
+                            <option value="">UF</option>
+                            <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                            <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                            <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                            <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                            <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                            <option value="PR" selected>PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                            <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                            <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                            <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 4: DOCUMENTAÇÃO FISCAL E REGISTROS -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-petroleo print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-petroleo tracking-wide">
+                        04. Documentação Fiscal
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-3">
+                        <label for="cnpj" class="label-industrial">CNPJ</label>
+                        <input type="text" id="cnpj" name="CNPJ" placeholder="00.000.000/0000-00" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-3">
+                        <label for="cpf" class="label-industrial">CPF</label>
+                        <input type="text" id="cpf" name="CPF" placeholder="000.000.000-00" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="insc-estadual" class="label-industrial">Insc. Estadual</label>
+                        <input type="text" id="insc-estadual" name="INC ESTADUAL" placeholder="Inscrição Estadual" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="insc-municipal" class="label-industrial">Insc. Municipal</label>
+                        <input type="text" id="insc-municipal" name="INSC MUNIPAL" placeholder="Inscrição Municipal" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="cadpro" class="label-industrial">CADPRO</label>
+                        <input type="text" id="cadpro" name="CADPRO" placeholder="Produtor Rural" class="input-industrial">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 5: DADOS COMERCIAIS, INDÚSTRIA E UTILIZAÇÃO -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-aco print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-aco text-ambar flex items-center justify-center">
+                        <i data-lucide="factory" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-aco tracking-wide">
+                        05. Classificação Industrial & Comercial
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <div class="lg:col-span-3">
+                        <label for="cod-industria" class="label-industrial">Cód. de Ind.</label>
+                        <input type="text" id="cod-industria" name="COD. DE IND." placeholder="Ex: IND-045" class="input-industrial">
+                    </div>
+
+                    <div class="sm:col-span-2 lg:col-span-9">
+                        <label for="desc-cod-industria" class="label-industrial">Descrição Código de Indústria</label>
+                        <input type="text" id="desc-cod-industria" name="DESCRICAO CODIGO DE INDUSTRIA" placeholder="Descrição do ramo ou atividade industrial" class="input-industrial">
+                    </div>
+
+                    <div class="lg:col-span-4">
+                        <label for="comprador" class="label-industrial">Comprador</label>
+                        <input type="text" id="comprador" name="COMPRADOR" placeholder="Nome do responsável pelas compras" class="input-industrial">
+                    </div>
+
+                    <div class="sm:col-span-2 lg:col-span-8">
+                        <label class="label-industrial">Utilização do Produto</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-aco/20 bg-creme/40 hover:bg-creme cursor-pointer transition-colors">
+                                <input type="checkbox" name="UTILIZAÇÃO DO PRODUTO" value="USO E CONSUMO PRÓPRIO" class="w-4 h-4 accent-trator rounded">
+                                <span class="text-xs font-bold text-aco">USO E CONSUMO PRÓPRIO</span>
+                            </label>
+
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-aco/20 bg-creme/40 hover:bg-creme cursor-pointer transition-colors">
+                                <input type="checkbox" name="UTILIZAÇÃO DO PRODUTO" value="INDUSTRIALIZAÇÃO" class="w-4 h-4 accent-trator rounded">
+                                <span class="text-xs font-bold text-aco">INDUSTRIALIZAÇÃO</span>
+                            </label>
+
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-aco/20 bg-creme/40 hover:bg-creme cursor-pointer transition-colors">
+                                <input type="checkbox" name="UTILIZAÇÃO DO PRODUTO" value="COMERCIALIZAÇÃO" class="w-4 h-4 accent-trator rounded">
+                                <span class="text-xs font-bold text-aco">COMERCIALIZAÇÃO</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 6: CONTROLE DO USUÁRIO DO SISTEMA -->
+            <section class="bg-cremeEscuro/60 rounded-2xl p-6 sm:p-8 shadow-sm border-2 border-aco/15 print-card">
+                <div class="flex items-center gap-2.5 border-b border-aco/15 pb-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="shield" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-lg sm:text-xl font-bold uppercase text-petroleo tracking-wide">
+                        06. Registro do Operador / Usuário
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label for="usuario" class="label-industrial">Usuário</label>
+                        <input type="text" id="usuario" name="USUÁRIO" value="MARCOS CERON BENETON" class="input-industrial">
+                    </div>
+
+                    <div>
+                        <label for="email-usuario" class="label-industrial">E-mail Usuário</label>
+                        <input type="email" id="email-usuario" name="E-MAIL USUÁRIO" value="bemhesrepresentacao@gmail.com" class="input-industrial">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BOTÕES DE ENVIO DO FORMULÁRIO -->
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-2 no-print">
+                <a href="index.html" class="w-full sm:w-auto text-center px-6 py-3.5 rounded-xl border-2 border-aco/20 text-aco font-bold text-sm uppercase tracking-wider hover:bg-aco/10 transition-colors">
+                    Cancelar
+                </a>
+                <button id="btn-salvar" type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-trator hover:bg-tratorHover text-white font-display text-lg font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transition-all">
+                    <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+                    <span id="texto-btn-salvar">Salvar na Planilha (CLIENTES)</span>
+                </button>
+            </div>
+
+        </form>
+
+        <!-- NOTIFICAÇÃO DE STATUS -->
+        <div id="toast-status" class="fixed bottom-6 right-6 z-50 hidden items-center gap-3 bg-aco text-white px-5 py-4 rounded-2xl shadow-2xl border-l-4 border-ambar max-w-md">
+            <div id="toast-icone" class="w-8 h-8 rounded-lg bg-ambar/20 text-ambar flex items-center justify-center flex-shrink-0">
+                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <p class="font-display text-sm font-bold uppercase tracking-wide" id="toast-titulo">Status</p>
+                <p class="text-xs text-creme/85" id="toast-mensagem"></p>
+            </div>
         </div>
 
-        <!-- GRID COM OS 4 BOTÕES OBRIGATÓRIOS NA ORDEM EXATA -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-            <!-- ========================================================= -->
-            <!-- BOTÃO 1: ADD CLIENTE                                          -->
-            <!-- ========================================================= -->
-            <!-- INSIRA O LINK DE CLIENTE NO ATRIBUTO href ABAIXO -->
-            <a 
-                id="btn-add-cliente"
-                href="cadastro de clientes.html" 
-                data-link="add-cliente"
-                onclick="verificarLink(event, 'cliente', 'Cliente')"
-                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-petroleo hover:border-petroleo focus:outline-none focus:ring-4 focus:ring-petroleo/30"
-            >
-                <div>
-                    <!-- Topo do Card: Número e Ícone -->
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="w-14 h-14 rounded-xl bg-petroleo text-white flex items-center justify-center shadow-inner group-hover:bg-petroleoHover transition-colors">
-                            <i data-lucide="users" class="w-7 h-7"></i>
-                        </div>
-                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-petroleo transition-colors">01</span>
-                    </div>
-
-                    <!-- Título e Descrição -->
-                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco group-hover:text-petroleo transition-colors mb-2">
-                        add-Cliente
-                    </h3>
-                    <p class="text-sm text-aco/70 leading-relaxed">
-                        Adicionar novos clientes.
-                    </p>
-                </div>
-
-                <!-- Rodapé do Botão -->
-                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-petroleo">
-                    <span>Acessar Módulo</span>
-                    <span class="w-8 h-8 rounded-lg bg-petroleo/10 group-hover:bg-petroleo group-hover:text-white flex items-center justify-center transition-colors">
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </span>
-                </div>
-            </a>
-
-            <!-- ========================================================= -->
-            <!-- BOTÃO 2: COTAÇÃO                                          -->
-            <!-- ========================================================= -->
-            <!-- INSIRA O LINK DE COTAÇÃO NO ATRIBUTO href ABAIXO -->
-            <a 
-                id="btn-cotacao"
-                href="#" 
-                data-link="cotacao"
-                onclick="verificarLink(event, 'cotacao', 'Cotação')"
-                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-trator hover:border-trator focus:outline-none focus:ring-4 focus:ring-trator/30"
-            >
-                <div>
-                    <!-- Topo do Card: Número e Ícone -->
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="w-14 h-14 rounded-xl bg-trator text-white flex items-center justify-center shadow-inner group-hover:bg-tratorHover transition-colors">
-                            <i data-lucide="calculator" class="w-7 h-7"></i>
-                        </div>
-                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-trator transition-colors">02</span>
-                    </div>
-
-                    <!-- Título e Descrição -->
-                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco group-hover:text-trator transition-colors mb-2">
-                        Cotação
-                    </h3>
-                    <p class="text-sm text-aco/70 leading-relaxed">
-                        Orçamentos rápidos de graxas, óleos lubrificantes, filtros e serviços técnicos.
-                    </p>
-                </div>
-
-                <!-- Rodapé do Botão -->
-                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-trator">
-                    <span>Acessar Módulo</span>
-                    <span class="w-8 h-8 rounded-lg bg-trator/10 group-hover:bg-trator group-hover:text-white flex items-center justify-center transition-colors">
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </span>
-                </div>
-            </a>
-
-            <!-- ========================================================= -->
-            <!-- BOTÃO 3: FATURAMENTO                                      -->
-            <!-- ========================================================= -->
-            <!-- INSIRA O LINK DE FATURAMENTO NO ATRIBUTO href ABAIXO -->
-            <a 
-                id="btn-faturamento"
-                href="#" 
-                data-link="faturamento"
-                onclick="verificarLink(event, 'faturamento', 'Faturamento')"
-                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-ambar hover:border-ambar focus:outline-none focus:ring-4 focus:ring-ambar/30"
-            >
-                <div>
-                    <!-- Topo do Card: Número e Ícone -->
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="w-14 h-14 rounded-xl bg-ambar text-white flex items-center justify-center shadow-inner group-hover:brightness-95 transition-all">
-                            <i data-lucide="receipt" class="w-7 h-7"></i>
-                        </div>
-                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-ambar transition-colors">03</span>
-                    </div>
-
-                    <!-- Título e Descrição -->
-                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco group-hover:text-ambar transition-colors mb-2">
-                        Faturamento
-                    </h3>
-                    <p class="text-sm text-aco/70 leading-relaxed">
-                        Emissão de notas fiscais, controle financeiro, boletos e fechamento de pedidos.
-                    </p>
-                </div>
-
-                <!-- Rodapé do Botão -->
-                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-amber-700">
-                    <span>Acessar Módulo</span>
-                    <span class="w-8 h-8 rounded-lg bg-ambar/15 group-hover:bg-ambar group-hover:text-white flex items-center justify-center transition-colors">
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </span>
-                </div>
-            </a>
-
-            <!-- ========================================================= -->
-            <!-- BOTÃO 4: CONFIGURAÇÃO                                     -->
-            <!-- ========================================================= -->
-            <!-- INSIRA O LINK DE CONFIGURAÇÃO NO ATRIBUTO href ABAIXO -->
-            <a 
-                id="btn-configuracao"
-                href="#" 
-                data-link="configuracao"
-                onclick="verificarLink(event, 'configuracao', 'Configuração')"
-                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-aco hover:border-aco focus:outline-none focus:ring-4 focus:ring-aco/30"
-            >
-                <div>
-                    <!-- Topo do Card: Número e Ícone -->
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="w-14 h-14 rounded-xl bg-aco text-ambar flex items-center justify-center shadow-inner group-hover:bg-black transition-colors">
-                            <i data-lucide="settings" class="w-7 h-7 gear-spin"></i>
-                        </div>
-                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-aco transition-colors">04</span>
-                    </div>
-
-                    <!-- Título e Descrição -->
-                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco mb-2">
-                        Configuração
-                    </h3>
-                    <p class="text-sm text-aco/70 leading-relaxed">
-                        Parâmetros do sistema, tabela de preços, usuários e links de integração.
-                    </p>
-                </div>
-
-                <!-- Rodapé do Botão -->
-                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-aco">
-                    <span>Acessar Módulo</span>
-                    <span class="w-8 h-8 rounded-lg bg-aco/10 group-hover:bg-aco group-hover:text-ambar flex items-center justify-center transition-colors">
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </span>
-                </div>
-            </a>
-
-        </div>
     </main>
 
     <!-- ===================================================================== -->
-    <!-- 3. RODAPÉ (FOOTER)                                                    -->
+    <!-- 3. RODAPÉ (FOOTER MANTIDO)                                            -->
     <!-- ===================================================================== -->
     <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                
-                <!-- Identificação da Empresa -->
                 <div class="text-center md:text-left">
                     <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
                         <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
@@ -365,7 +501,6 @@
                     </p>
                 </div>
 
-                <!-- Contatos Institucionais -->
                 <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
                     <div class="flex items-center gap-2">
                         <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
@@ -376,10 +511,8 @@
                         <span>Qualidade Garantida</span>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Linha Inferior de Direitos Autorais -->
             <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
                 <p>&copy; <span id="ano-atual">2026</span> Marcão da Graxa. Todos os direitos reservados.</p>
                 <p>Portal Administrativo v1.0</p>
@@ -388,172 +521,136 @@
     </footer>
 
     <!-- ===================================================================== -->
-    <!-- MODAL PARA CONFIGURAR / TESTAR LINKS SEM PRECISAR EDITAR CÓDIGO       -->
-    <!-- ===================================================================== -->
-    <div id="modal-links" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
-        <div class="bg-creme border-2 border-aco rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative">
-            
-            <!-- Cabeçalho do Modal -->
-            <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-5">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-lg bg-trator text-white flex items-center justify-center">
-                        <i data-lucide="link" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-display text-xl font-bold uppercase text-aco">Configurar Links dos Botões</h3>
-                        <p class="text-xs text-aco/70">Cole os endereços (URLs) para cada módulo</p>
-                    </div>
-                </div>
-                <button type="button" onclick="fecharModalLinks()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <!-- Aviso Informativo -->
-            <div id="aviso-modal" class="hidden mb-4 p-3 rounded-xl bg-ambar/20 border border-ambar text-aco text-xs font-medium flex items-start gap-2">
-                <i data-lucide="info" class="w-4 h-4 text-trator flex-shrink-0 mt-0.5"></i>
-                <span id="texto-aviso-modal">Este botão ainda não possui um link configurado. Preencha abaixo para ativá-lo.</span>
-            </div>
-
-            <!-- Formulário de URLs -->
-            <form id="form-links" onsubmit="salvarLinks(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-petroleo mb-1">1. Link do Botão: Cliente</label>
-                    <input type="url" id="input-cliente" placeholder="https://seu-sistema.com/clientes" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-petroleo">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase text-trator mb-1">2. Link do Botão: Cotação</label>
-                    <input type="url" id="input-cotacao" placeholder="https://seu-sistema.com/cotacao" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-trator">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase text-amber-700 mb-1">3. Link do Botão: Faturamento</label>
-                    <input type="url" id="input-faturamento" placeholder="https://seu-sistema.com/faturamento" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-ambar">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase text-aco mb-1">4. Link do Botão: Configuração</label>
-                    <input type="url" id="input-configuracao" placeholder="https://seu-sistema.com/configuracao" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-aco">
-                </div>
-
-                <div class="pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
-                    <button type="button" onclick="fecharModalLinks()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10 transition-colors">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-trator hover:bg-tratorHover text-white shadow-md transition-colors flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4"></i>
-                        <span>Salvar Links</span>
-                    </button>
-                </div>
-            </form>
-
-        </div>
-    </div>
-
-    <!-- ===================================================================== -->
-    <!-- SCRIPTS DE INTERATIVIDADE                                             -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS                               -->
     <!-- ===================================================================== -->
     <script>
-        // Inicializa os ícones Lucide
         lucide.createIcons();
 
-        // Atualiza data e ano no cabeçalho e rodapé
+        // COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT (terminada em /exec)
+        const URL_APPS_SCRIPT_PADRAO = "https://script.google.com/macros/s/AKfycbxSGPTnwlVjCzbnkBQhB6Jg-eycfGdTtFtVgk4zTp6eyvdWQZQsyZj2poI8W3PYFp1Hzw/exec";
+        const STORAGE_URL_KEY = "marcao_sheets_exec_url";
+
         document.getElementById('ano-atual').textContent = new Date().getFullYear();
         const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
         document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
 
-        // Chave para salvar links no navegador caso o usuário configure pela tela
-        const STORAGE_KEY = 'marcao_da_graxa_links_v1';
-        const modulos = ['cliente', 'cotacao', 'faturamento', 'configuracao'];
+        function obterUrlScript() {
+            const salva = localStorage.getItem(STORAGE_URL_KEY);
+            if (salva && salva.startsWith("http")) return salva;
+            return URL_APPS_SCRIPT_PADRAO;
+        }
 
-        // Carrega links salvos (se houver)
-        function carregarLinks() {
-            try {
-                const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                modulos.forEach(mod => {
-                    const btn = document.getElementById(`btn-${mod}`);
-                    // Só sobrescreve se o href no HTML ainda estiver como "#"
-                    if (btn && btn.getAttribute('href') === '#' && salvos[mod]) {
-                        btn.setAttribute('href', salvos[mod]);
-                    }
-                });
-            } catch (e) {
-                console.error('Erro ao carregar links salvos:', e);
+        function configurarUrlScript() {
+            const atual = obterUrlScript();
+            const nova = prompt(
+                "Cole a URL do Web App do Google Apps Script (terminada em /exec) vinculada à sua planilha:",
+                atual.startsWith("http") ? atual : ""
+            );
+            if (nova && nova.trim().startsWith("http")) {
+                localStorage.setItem(STORAGE_URL_KEY, nova.trim());
+                mostrarToast("URL Salva!", "Conexão com a aba CLIENTES configurada neste navegador.", false);
             }
         }
 
-        // Verifica se o botão já possui um link real antes de navegar
-        function verificarLink(event, chave, nomeModulo) {
-            const btn = document.getElementById(`btn-${chave}`);
-            const hrefAtual = btn.getAttribute('href');
+        function mostrarToast(titulo, mensagem, isErro = false) {
+            const toast = document.getElementById('toast-status');
+            const icone = document.getElementById('toast-icone');
+            document.getElementById('toast-titulo').textContent = titulo;
+            document.getElementById('toast-mensagem').textContent = mensagem;
 
-            // Se ainda estiver "#", abre o painel amigável para o usuário colar o link
-            if (!hrefAtual || hrefAtual === '#') {
-                event.preventDefault();
-                abrirModalLinks(`O botão "${nomeModulo}" ainda está aguardando seu link. Cole o endereço abaixo ou insira diretamente no código HTML.`);
-            }
-        }
+            toast.classList.remove('border-ambar', 'border-red-500');
+            icone.classList.remove('bg-ambar/20', 'text-ambar', 'bg-red-500/20', 'text-red-400');
 
-        // Abre o modal de configuração de URLs
-        function abrirModalLinks(mensagemAviso = '') {
-            const modal = document.getElementById('modal-links');
-            const aviso = document.getElementById('aviso-modal');
-            const textoAviso = document.getElementById('texto-aviso-modal');
-
-            // Preenche os inputs com os hrefs atuais
-            modulos.forEach(mod => {
-                const btn = document.getElementById(`btn-${mod}`);
-                const href = btn.getAttribute('href');
-                document.getElementById(`input-${mod}`).value = (href && href !== '#') ? href : '';
-            });
-
-            if (mensagemAviso) {
-                textoAviso.textContent = mensagemAviso;
-                aviso.classList.remove('hidden');
+            if (isErro) {
+                toast.classList.add('border-red-500');
+                icone.classList.add('bg-red-500/20', 'text-red-400');
             } else {
-                aviso.classList.add('hidden');
+                toast.classList.add('border-ambar');
+                icone.classList.add('bg-ambar/20', 'text-ambar');
             }
 
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 5000);
         }
 
-        // Fecha o modal
-        function fecharModalLinks() {
-            const modal = document.getElementById('modal-links');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        // Máscaras de formatação
+        function aplicarMascara(id, fn) {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', e => e.target.value = fn(e.target.value));
         }
 
-        // Salva os links inseridos pelo usuário
-        function salvarLinks(event) {
+        aplicarMascara('cpf', v => v.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'));
+        aplicarMascara('cnpj', v => v.replace(/\D/g, '').slice(0, 14).replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'));
+        aplicarMascara('cep', v => v.replace(/\D/g, '').slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2'));
+
+        const maskFone = v => {
+            v = v.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+            if (v.length > 5) return v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            if (v.length > 2) return v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            return v;
+        };
+        ['telefone', 'fone-fixo', 'fone-celular-1', 'fone-celular-2', 'whatsapp'].forEach(id => aplicarMascara(id, maskFone));
+
+        // Envio real para o Google Sheets (aba CLIENTES)
+        async function salvarNaPlanilha(event) {
             event.preventDefault();
-            const novosLinks = {};
+            const urlScript = obterUrlScript();
 
-            modulos.forEach(mod => {
-                const valor = document.getElementById(`input-${mod}`).value.trim();
-                const btn = document.getElementById(`btn-${mod}`);
-                if (valor) {
-                    btn.setAttribute('href', valor);
-                    novosLinks[mod] = valor;
-                } else {
-                    btn.setAttribute('href', '#');
+            if (!urlScript || !urlScript.startsWith("http")) {
+                mostrarToast("Configuração Necessária", "Clique em 'URL da Planilha (Apps Script)' no topo e cole o link /exec da sua planilha.", true);
+                configurarUrlScript();
+                return;
+            }
+
+            const btn = document.getElementById('btn-salvar');
+            const textoBtn = document.getElementById('texto-btn-salvar');
+            btn.disabled = true;
+            textoBtn.textContent = "Enviando para Planilha...";
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const payload = {};
+
+            // Monta o objeto com chaves em MAIÚSCULO iguais aos cabeçalhos da aba CLIENTES
+            for (const [key, value] of formData.entries()) {
+                if (key !== "UTILIZAÇÃO DO PRODUTO") {
+                    payload[key.trim().toUpperCase()] = value;
                 }
-            });
+            }
+
+            // Concatena as opções marcadas em "UTILIZAÇÃO DO PRODUTO"
+            const utilizacoes = formData.getAll("UTILIZAÇÃO DO PRODUTO");
+            payload["UTILIZAÇÃO DO PRODUTO"] = utilizacoes.join(", ");
+            utilizacoes.forEach(u => { payload[u.toUpperCase()] = "SIM"; });
 
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(novosLinks));
-            } catch (e) {
-                console.warn('Não foi possível salvar no localStorage:', e);
+                await fetch(urlScript, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                mostrarToast("Salvo na Aba CLIENTES!", `Cliente "${payload["NOME"]}" enviado com sucesso para a planilha.`);
+
+                if (payload["IMPRIMIR CLIENTE?"] === "SIM") {
+                    setTimeout(() => window.print(), 400);
+                }
+
+                form.reset();
+            } catch (erro) {
+                mostrarToast("Erro ao Enviar", "Não foi possível conectar com a planilha. Verifique a URL do Apps Script.", true);
+            } finally {
+                btn.disabled = false;
+                textoBtn.textContent = "Salvar na Planilha (CLIENTES)";
             }
-
-            fecharModalLinks();
         }
-
-        // Inicializa ao carregar a página
-        window.addEventListener('DOMContentLoaded', carregarLinks);
     </script>
 </body>
 </html>
