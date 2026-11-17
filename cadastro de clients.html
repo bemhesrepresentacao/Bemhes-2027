@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARCÃO DA GRAXA — Cadastro de Clientes</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes Google: Oswald (Títulos Industriais) e Inter (Textos e Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Configuração de Cores e Fontes Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
+                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
+                        trator: '#D9531E',       /* Laranja vibrante do trator */
+                        tratorHover: '#B84214',  /* Laranja escuro para hover */
+                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
+                        petroleoHover: '#153448',/* Azul escuro para hover */
+                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
+                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                    },
+                    fontFamily: {
+                        display: ['Oswald', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Padrão sutil de textura industrial no fundo creme */
+        body {
+            background-color: #F7F3EA;
+            background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #1C2226;
+        }
+
+        /* Estilo de inputs industriais */
+        .input-industrial {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: 1.5px solid rgba(28, 34, 38, 0.2);
+            border-radius: 0.65rem;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.875rem;
+            color: #1C2226;
+            transition: all 0.2s ease;
+        }
+
+        .input-industrial:focus {
+            outline: none;
+            border-color: #1E4863;
+            box-shadow: 0 0 0 3px rgba(30, 72, 99, 0.15);
+        }
+
+        .label-industrial {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #1C2226;
+            margin-bottom: 0.35rem;
+        }
+
+        /* Estilos exclusivos para impressão */
+        @media print {
+            body {
+                background: #FFFFFF !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                margin-bottom: 1rem !important;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
+
+    <!-- ===================================================================== -->
+    <!-- 1. CABEÇALHO (HEADER MANTIDO)                                          -->
+    <!-- ===================================================================== -->
+    <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
+        <!-- Faixa Institucional Superior -->
+        <div class="bg-petroleo/90 border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-ambar animate-pulse"></span>
+                    <span>MARCÃO DA GRAXA — Soluções em Lubrificação Industrial, Agrícola e Automotiva</span>
+                </div>
+                <div class="flex items-center gap-4 text-creme/80">
+                    <span id="data-atual" class="hidden md:inline"></span>
+                    <span class="px-2 py-0.5 rounded bg-aco/60 text-ambar font-semibold text-xs border border-ambar/30">
+                        Sistema Operacional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
+        <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
+                <div class="flex-shrink-0 flex justify-center">
+                    <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
+                        <img 
+                            src="MARCAO DA GRAXA.jpg" 
+                            alt="Logo Oficial Marcão da Graxa" 
+                            class="w-44 sm:w-52 md:w-56 h-auto object-contain block rounded-xl"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/F7F3EA/1C2226?text=MARCÃO+DA+GRAXA.jpg';"
+                        >
+                    </div>
+                </div>
+
+                <!-- Título e Apresentação do Portal -->
+                <div class="text-center md:text-left flex-1 md:pl-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trator/10 text-trator font-bold text-xs uppercase tracking-wider mb-3 border border-trator/20">
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                        <span>Módulo de Cadastro</span>
+                    </div>
+                    <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
+                        CADASTRO DE <span class="text-trator">CLIENTES</span>
+                    </h1>
+                    <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Preencha abaixo a ficha cadastral completa do cliente, dados fiscais, contatos, endereço e classificação industrial para registro no sistema.
+                    </p>
+                </div>
+
+                <nav class="no-print">
+                    <a href="index.html"
+                       class="inline-flex items-center gap-2 rounded-lg
+                              bg-[#944b20] px-5 py-3 text-white font-semibold
+                              shadow-lg transition-all duration-300
+                              hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
+                       title="Voltar para a página inicial">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="24" height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2.5"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+                        <span>Voltar</span>
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. FORMULÁRIO PRINCIPAL DE CADASTRO DE CLIENTE                        -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <form id="form-cadastro-cliente" onsubmit="salvarCadastro(event)" class="space-y-8">
+
+            <!-- Barra Superior de Ações Rápidas e Controle de Impressão -->
+            <div class="bg-white rounded-2xl p-5 shadow-md border-2 border-aco/15 border-l-8 border-l-trator flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print-card">
+                <div class="flex flex-wrap items-center gap-6">
+                    <!-- IMPRIMIR CLIENTE? -->
+                    <div class="flex items-center gap-3 bg-creme px-4 py-2.5 rounded-xl border border-aco/15">
+                        <label for="imprimir-cliente" class="font-display text-sm font-bold uppercase text-aco tracking-wide flex items-center gap-2 cursor-pointer">
+                            <i data-lucide="printer" class="w-4 h-4 text-trator"></i>
+                            <span>Imprimir Cliente?</span>
+                        </label>
+                        <select id="imprimir-cliente" name="imprimir_cliente" class="bg-white border border-aco/25 rounded-lg px-3 py-1 text-sm font-bold text-petroleo focus:outline-none focus:border-trator">
+                            <option value="NAO">NÃO</option>
+                            <option value="SIM">SIM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end no-print">
+                    <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-xs font-bold uppercase tracking-wider border border-aco/20 transition-colors">
+                        <i data-lucide="printer" class="w-4 h-4 text-trator"></i>
+                        <span>Imprimir Ficha</span>
+                    </button>
+                    <button type="reset" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-red-50 text-red-700 text-xs font-bold uppercase tracking-wider border border-red-200 transition-colors">
+                        <i data-lucide="eraser" class="w-4 h-4"></i>
+                        <span>Limpar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BLOCO 1: IDENTIFICAÇÃO DO CLIENTE -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-petroleo print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-petroleo tracking-wide">
+                        01. Identificação do Cliente
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <!-- ID -->
+                    <div class="lg:col-span-2">
+                        <label for="id-cliente" class="label-industrial">ID</label>
+                        <input type="text" id="id-cliente" name="id" placeholder="Ex: 0001" class="input-industrial font-semibold bg-creme/40">
+                    </div>
+
+                    <!-- CÓDIGO DO CLIENTE -->
+                    <div class="lg:col-span-3">
+                        <label for="codigo-cliente" class="label-industrial">Código do Cliente</label>
+                        <input type="text" id="codigo-cliente" name="codigo_cliente" placeholder="Ex: CLI-2026-01" class="input-industrial">
+                    </div>
+
+                    <!-- DATA DE NASCIMENTO -->
+                    <div class="lg:col-span-3">
+                        <label for="data-nascimento" class="label-industrial">Data de Nascimento</label>
+                        <input type="date" id="data-nascimento" name="data_nascimento" class="input-industrial">
+                    </div>
+
+                    <!-- GRUPO FAMILIAR -->
+                    <div class="lg:col-span-4">
+                        <label for="grupo-familiar" class="label-industrial">Grupo Familiar</label>
+                        <input type="text" id="grupo-familiar" name="grupo_familiar" placeholder="Nome do grupo ou rede familiar" class="input-industrial">
+                    </div>
+
+                    <!-- NOME -->
+                    <div class="sm:col-span-2 lg:col-span-12">
+                        <label for="nome-cliente" class="label-industrial">Nome / Razão Social *</label>
+                        <input type="text" id="nome-cliente" name="nome" required placeholder="Digite o nome completo ou razão social do cliente" class="input-industrial font-medium">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 2: CONTATOS E COMUNICAÇÃO -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-trator print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="phone-call" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-trator tracking-wide">
+                        02. Contatos & Comunicação
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <!-- TIPO FONE -->
+                    <div class="lg:col-span-3">
+                        <label for="tipo-fone" class="label-industrial">Tipo Fone</label>
+                        <select id="tipo-fone" name="tipo_fone" class="input-industrial">
+                            <option value="">Selecione...</option>
+                            <option value="COMERCIAL">Comercial</option>
+                            <option value="CELULAR">Celular</option>
+                            <option value="RESIDENCIAL">Residencial</option>
+                            <option value="FAZENDA">Fazenda / Rural</option>
+                            <option value="FINANCEIRO">Financeiro</option>
+                        </select>
+                    </div>
+
+                    <!-- TELEFONE -->
+                    <div class="lg:col-span-3">
+                        <label for="telefone" class="label-industrial">Telefone</label>
+                        <input type="tel" id="telefone" name="telefone" placeholder="(00) 0000-0000" class="input-industrial">
+                    </div>
+
+                    <!-- FONE FIXO -->
+                    <div class="lg:col-span-3">
+                        <label for="fone-fixo" class="label-industrial">Fone Fixo</label>
+                        <input type="tel" id="fone-fixo" name="fone_fixo" placeholder="(00) 0000-0000" class="input-industrial">
+                    </div>
+
+                    <!-- WHATSAPP -->
+                    <div class="lg:col-span-3">
+                        <label for="whatsapp" class="label-industrial text-emerald-800">WhatsApp</label>
+                        <input type="tel" id="whatsapp" name="whatsapp" placeholder="(00) 90000-0000" class="input-industrial border-emerald-600/30 focus:border-emerald-600">
+                    </div>
+
+                    <!-- FONE CELULAR 1 -->
+                    <div class="lg:col-span-3">
+                        <label for="fone-celular-1" class="label-industrial">Fone Celular 1</label>
+                        <input type="tel" id="fone-celular-1" name="fone_celular_1" placeholder="(00) 90000-0000" class="input-industrial">
+                    </div>
+
+                    <!-- FONE CELULAR 2 -->
+                    <div class="lg:col-span-3">
+                        <label for="fone-celular-2" class="label-industrial">Fone Celular 2</label>
+                        <input type="tel" id="fone-celular-2" name="fone_celular_2" placeholder="(00) 90000-0000" class="input-industrial">
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="sm:col-span-2 lg:col-span-6">
+                        <label for="email-cliente" class="label-industrial">E-mail</label>
+                        <input type="email" id="email-cliente" name="email" placeholder="cliente@empresa.com.br" class="input-industrial">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 3: ENDEREÇO E LOCALIZAÇÃO -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-ambar print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-ambar text-white flex items-center justify-center">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-amber-800 tracking-wide">
+                        03. Endereço & Localização
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <!-- CEP -->
+                    <div class="lg:col-span-3">
+                        <label for="cep" class="label-industrial">CEP</label>
+                        <input type="text" id="cep" name="cep" placeholder="00000-000" maxlength="9" class="input-industrial">
+                    </div>
+
+                    <!-- ENDEREÇO -->
+                    <div class="sm:col-span-2 lg:col-span-9">
+                        <label for="endereco" class="label-industrial">Endereço (Rua, Av., Rodovia, Nº, Complemento)</label>
+                        <input type="text" id="endereco" name="endereco" placeholder="Ex: Av. Brasil, 1500 - Sala 02" class="input-industrial">
+                    </div>
+
+                    <!-- BAIRRO -->
+                    <div class="lg:col-span-5">
+                        <label for="bairro" class="label-industrial">Bairro / Distrito</label>
+                        <input type="text" id="bairro" name="bairro" placeholder="Nome do bairro ou zona rural" class="input-industrial">
+                    </div>
+
+                    <!-- CIDADE -->
+                    <div class="lg:col-span-5">
+                        <label for="cidade" class="label-industrial">Cidade</label>
+                        <input type="text" id="cidade" name="cidade" placeholder="Ex: Mandaguari" class="input-industrial">
+                    </div>
+
+                    <!-- ESTADO -->
+                    <div class="lg:col-span-2">
+                        <label for="estado" class="label-industrial">Estado (UF)</label>
+                        <select id="estado" name="estado" class="input-industrial">
+                            <option value="">UF</option>
+                            <option value="AC">AC</option>
+                            <option value="AL">AL</option>
+                            <option value="AP">AP</option>
+                            <option value="AM">AM</option>
+                            <option value="BA">BA</option>
+                            <option value="CE">CE</option>
+                            <option value="DF">DF</option>
+                            <option value="ES">ES</option>
+                            <option value="GO">GO</option>
+                            <option value="MA">MA</option>
+                            <option value="MT">MT</option>
+                            <option value="MS">MS</option>
+                            <option value="MG">MG</option>
+                            <option value="PA">PA</option>
+                            <option value="PB">PB</option>
+                            <option value="PR" selected>PR</option>
+                            <option value="PE">PE</option>
+                            <option value="PI">PI</option>
+                            <option value="RJ">RJ</option>
+                            <option value="RN">RN</option>
+                            <option value="RS">RS</option>
+                            <option value="RO">RO</option>
+                            <option value="RR">RR</option>
+                            <option value="SC">SC</option>
+                            <option value="SP">SP</option>
+                            <option value="SE">SE</option>
+                            <option value="TO">TO</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 4: DOCUMENTAÇÃO FISCAL E REGISTROS -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-petroleo print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-petroleo tracking-wide">
+                        04. Documentação Fiscal
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <!-- CNPJ -->
+                    <div class="lg:col-span-3">
+                        <label for="cnpj" class="label-industrial">CNPJ</label>
+                        <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" class="input-industrial">
+                    </div>
+
+                    <!-- CPF -->
+                    <div class="lg:col-span-3">
+                        <label for="cpf" class="label-industrial">CPF</label>
+                        <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" class="input-industrial">
+                    </div>
+
+                    <!-- INSC. ESTADUAL -->
+                    <div class="lg:col-span-2">
+                        <label for="insc-estadual" class="label-industrial">Insc. Estadual</label>
+                        <input type="text" id="insc-estadual" name="insc_estadual" placeholder="Inscrição Estadual" class="input-industrial">
+                    </div>
+
+                    <!-- INSC. MUNICIPAL -->
+                    <div class="lg:col-span-2">
+                        <label for="insc-municipal" class="label-industrial">Insc. Municipal</label>
+                        <input type="text" id="insc-municipal" name="insc_municipal" placeholder="Inscrição Municipal" class="input-industrial">
+                    </div>
+
+                    <!-- CADPRO -->
+                    <div class="lg:col-span-2">
+                        <label for="cadpro" class="label-industrial">CADPRO</label>
+                        <input type="text" id="cadpro" name="cadpro" placeholder="Produtor Rural" class="input-industrial">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 5: DADOS COMERCIAIS, INDÚSTRIA E UTILIZAÇÃO -->
+            <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-2 border-aco/15 border-b-4 border-b-aco print-card">
+                <div class="flex items-center gap-2.5 border-b-2 border-aco/10 pb-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-aco text-ambar flex items-center justify-center">
+                        <i data-lucide="factory" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold uppercase text-aco tracking-wide">
+                        05. Classificação Industrial & Comercial
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
+                    <!-- COD. DE IND. -->
+                    <div class="lg:col-span-3">
+                        <label for="cod-industria" class="label-industrial">Cód. de Ind.</label>
+                        <input type="text" id="cod-industria" name="cod_industria" placeholder="Ex: IND-045" class="input-industrial">
+                    </div>
+
+                    <!-- DESCRIÇÃO CÓDIGO DE INDÚSTRIA -->
+                    <div class="sm:col-span-2 lg:col-span-9">
+                        <label for="desc-cod-industria" class="label-industrial">Descrição Código de Indústria</label>
+                        <input type="text" id="desc-cod-industria" name="descricao_codigo_industria" placeholder="Descrição do ramo ou atividade industrial" class="input-industrial">
+                    </div>
+
+                    <!-- COMPRADOR -->
+                    <div class="lg:col-span-4">
+                        <label for="comprador" class="label-industrial">Comprador</label>
+                        <input type="text" id="comprador" name="comprador" placeholder="Nome do responsável pelas compras" class="input-industrial">
+                    </div>
+
+                    <!-- UTILIZAÇÃO DO PRODUTO -->
+                    <div class="sm:col-span-2 lg:col-span-8">
+                        <label class="label-industrial">Utilização do Produto</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-aco/20 bg-creme/40 hover:bg-creme cursor-pointer transition-colors">
+                                <input type="checkbox" name="utilizacao_produto" value="USO E CONSUMO PRÓPRIO" class="w-4 h-4 accent-trator rounded">
+                                <span class="text-xs font-bold text-aco">USO E CONSUMO PRÓPRIO</span>
+                            </label>
+
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-aco/20 bg-creme/40 hover:bg-creme cursor-pointer transition-colors">
+                                <input type="checkbox" name="utilizacao_produto" value="INDUSTRIALIZAÇÃO" class="w-4 h-4 accent-trator rounded">
+                                <span class="text-xs font-bold text-aco">INDUSTRIALIZAÇÃO</span>
+                            </label>
+
+                            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-aco/20 bg-creme/40 hover:bg-creme cursor-pointer transition-colors">
+                                <input type="checkbox" name="utilizacao_produto" value="COMERCIALIZAÇÃO" class="w-4 h-4 accent-trator rounded">
+                                <span class="text-xs font-bold text-aco">COMERCIALIZAÇÃO</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCO 6: CONTROLE DO USUÁRIO DO SISTEMA -->
+            <section class="bg-cremeEscuro/60 rounded-2xl p-6 sm:p-8 shadow-sm border-2 border-aco/15 print-card">
+                <div class="flex items-center gap-2.5 border-b border-aco/15 pb-3 mb-5">
+                    <div class="w-8 h-8 rounded-lg bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="shield" class="w-4 h-4"></i>
+                    </div>
+                    <h2 class="font-display text-lg sm:text-xl font-bold uppercase text-petroleo tracking-wide">
+                        06. Registro do Operador / Usuário
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <!-- USUÁRIO -->
+                    <div>
+                        <label for="usuario" class="label-industrial">Usuário</label>
+                        <input type="text" id="usuario" name="usuario" placeholder="Nome do operador / representante" class="input-industrial">
+                    </div>
+
+                    <!-- E-MAIL USUÁRIO -->
+                    <div>
+                        <label for="email-usuario" class="label-industrial">E-mail Usuário</label>
+                        <input type="email" id="email-usuario" name="email_usuario" placeholder="usuario@marcaodagraxa.com.br" class="input-industrial">
+                    </div>
+                </div>
+            </section>
+
+            <!-- BOTÕES DE ENVIO DO FORMULÁRIO -->
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-2 no-print">
+                <a href="index.html" class="w-full sm:w-auto text-center px-6 py-3.5 rounded-xl border-2 border-aco/20 text-aco font-bold text-sm uppercase tracking-wider hover:bg-aco/10 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-trator hover:bg-tratorHover text-white font-display text-lg font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transition-all">
+                    <i data-lucide="save" class="w-5 h-5"></i>
+                    <span>Salvar Cadastro do Cliente</span>
+                </button>
+            </div>
+
+        </form>
+
+        <!-- NOTIFICAÇÃO DE SUCESSO -->
+        <div id="toast-sucesso" class="fixed bottom-6 right-6 z-50 hidden items-center gap-3 bg-aco text-white px-5 py-4 rounded-2xl shadow-2xl border-l-4 border-ambar">
+            <div class="w-8 h-8 rounded-lg bg-ambar/20 text-ambar flex items-center justify-center">
+                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <p class="font-display text-sm font-bold uppercase tracking-wide">Cadastro Registrado!</p>
+                <p class="text-xs text-creme/80" id="toast-mensagem">Os dados do cliente foram salvos com sucesso.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. RODAPÉ (FOOTER MANTIDO)                                            -->
+    <!-- ===================================================================== -->
+    <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Identificação da Empresa -->
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
+                        <span class="font-display text-xl font-bold uppercase tracking-wider text-white">
+                            Marcão da Graxa
+                        </span>
+                    </div>
+                    <p class="text-sm text-creme/75">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>
+                </div>
+
+                <!-- Contatos Institucionais -->
+                <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
+                        <span>Atendimento Técnico & Comercial</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-ambar"></i>
+                        <span>Qualidade Garantida</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha Inferior de Direitos Autorais -->
+            <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
+                <p>&copy; <span id="ano-atual">2026</span> Marcão da Graxa. Todos os direitos reservados.</p>
+                <p>Portal Administrativo v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPTS DE INTERATIVIDADE E MÁSCARAS                                  -->
+    <!-- ===================================================================== -->
+    <script>
+        // Inicializa os ícones Lucide
+        lucide.createIcons();
+
+        // Atualiza data e ano no cabeçalho e rodapé
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
+        document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+        // Máscaras simples para CPF, CNPJ, CEP e Telefones
+        function aplicarMascara(id, funcaoMascara) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', (e) => {
+                e.target.value = funcaoMascara(e.target.value);
+            });
+        }
+
+        const maskCPF = v => v.replace(/\D/g, '').slice(0, 11)
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+        const maskCNPJ = v => v.replace(/\D/g, '').slice(0, 14)
+            .replace(/^(\d{2})(\d)/, '$1.$2')
+            .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1/$2')
+            .replace(/(\d{4})(\d)/, '$1-$2');
+
+        const maskCEP = v => v.replace(/\D/g, '').slice(0, 8)
+            .replace(/(\d{5})(\d)/, '$1-$2');
+
+        const maskFone = v => {
+            v = v.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) {
+                return v.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+            } else if (v.length > 5) {
+                return v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                return v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            }
+            return v;
+        };
+
+        aplicarMascara('cpf', maskCPF);
+        aplicarMascara('cnpj', maskCNPJ);
+        aplicarMascara('cep', maskCEP);
+        aplicarMascara('telefone', maskFone);
+        aplicarMascara('fone-fixo', maskFone);
+        aplicarMascara('fone-celular-1', maskFone);
+        aplicarMascara('fone-celular-2', maskFone);
+        aplicarMascara('whatsapp', maskFone);
+
+        // Processa o envio do formulário e aciona impressão caso "IMPRIMIR CLIENTE?" seja "SIM"
+        function salvarCadastro(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const dados = Object.fromEntries(formData.entries());
+            dados.utilizacao_produto = formData.getAll('utilizacao_produto');
+
+            // Salva localmente como histórico de testes
+            try {
+                const lista = JSON.parse(localStorage.getItem('marcao_clientes_cadastrados') || '[]');
+                lista.push({ ...dados, data_registro: new Date().toISOString() });
+                localStorage.setItem('marcao_clientes_cadastrados', JSON.stringify(lista));
+            } catch (e) {
+                console.warn('Erro ao salvar no navegador:', e);
+            }
+
+            // Exibe notificação visual
+            const toast = document.getElementById('toast-sucesso');
+            const msg = document.getElementById('toast-mensagem');
+            msg.textContent = `Cliente "${dados.nome || 'Sem nome'}" registrado com sucesso.`;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 4500);
+
+            // Se "IMPRIMIR CLIENTE?" estiver marcado como SIM, abre a janela de impressão
+            if (dados.imprimir_cliente === 'SIM') {
+                setTimeout(() => window.print(), 400);
+            }
+        }
+    </script>
+</body>
+</html>
