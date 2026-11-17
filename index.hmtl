@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARCÃO DA GRAXA — Portal de Gestão e Operações</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes Google: Oswald (Títulos Industriais) e Inter (Textos e Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Configuração de Cores e Fontes Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
+                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
+                        trator: '#D9531E',       /* Laranja vibrante do trator */
+                        tratorHover: '#B84214',  /* Laranja escuro para hover */
+                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
+                        petroleoHover: '#153448',/* Azul escuro para hover */
+                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
+                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                    },
+                    fontFamily: {
+                        display: ['Oswald', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Padrão sutil de textura industrial no fundo creme */
+        body {
+            background-color: #F7F3EA;
+            background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #1C2226;
+        }
+
+        /* Estilo de borda chanfrada/robusta para os cards */
+        .card-industrial {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom-width: 6px;
+        }
+
+        .card-industrial:hover {
+            transform: translateY(-4px);
+        }
+
+        .card-industrial:active {
+            transform: translateY(1px);
+            border-bottom-width: 2px;
+        }
+
+        /* Animação suave de rotação da engrenagem no hover */
+        .group:hover .gear-spin {
+            transform: rotate(90deg);
+        }
+        .gear-spin {
+            transition: transform 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
+
+    <!-- ===================================================================== -->
+    <!-- 1. CABEÇALHO (HEADER)                                                 -->
+    <!-- ===================================================================== -->
+    <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
+        <!-- Faixa Institucional Superior -->
+        <div class="bg-petroleo/90 border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-ambar animate-pulse"></span>
+                    <span>MARCÃO DA GRAXA — Soluções em Lubrificação Industrial, Agrícola e Automotiva</span>
+                </div>
+                <div class="flex items-center gap-4 text-creme/80">
+                    <span id="data-atual" class="hidden md:inline"></span>
+                    <span class="px-2 py-0.5 rounded bg-aco/60 text-ambar font-semibold text-xs border border-ambar/30">
+                        Sistema Operacional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
+        <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
+                <div class="flex-shrink-0 flex justify-center">
+                    <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
+                        <!-- Certifique-se de que o arquivo "MARCÃO DA GRAXA.jpg" esteja na mesma pasta do HTML -->
+                        <img 
+                            src="MARCÃO DA GRAXA.jpg" 
+                            alt="Logo Oficial Marcão da Graxa" 
+                            class="w-44 sm:w-52 md:w-56 h-auto object-contain block rounded-xl"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/F7F3EA/1C2226?text=MARCÃO+DA+GRAXA.jpg';"
+                        >
+                    </div>
+                </div>
+
+                <!-- Título e Apresentação do Portal -->
+                <div class="text-center md:text-left flex-1 md:pl-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trator/10 text-trator font-bold text-xs uppercase tracking-wider mb-3 border border-trator/20">
+                        <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                        <span>Central de Acesso Rápido</span>
+                    </div>
+                    <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
+                        MARCÃO <span class="text-trator">DA GRAXA</span>
+                    </h1>
+                    <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Bem-vindo ao portal de gestão. Selecione abaixo o módulo desejado para acessar o cadastro de clientes, gerar cotações, acompanhar o faturamento ou ajustar as configurações do sistema.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. SEÇÃO PRINCIPAL DE ACESSO RÁPIDO (GRID DE 4 BOTÕES)                -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
+        
+        <!-- Cabeçalho da Seção -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 border-b-2 border-aco/10 pb-4">
+            <div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold uppercase text-petroleo tracking-wide flex items-center gap-2.5">
+                    <span class="w-3 h-8 bg-trator rounded-sm inline-block"></span>
+                    Módulos do Sistema
+                </h2>
+                <p class="text-sm text-aco/70 mt-1">Clique em um dos botões abaixo para abrir a ferramenta correspondente.</p>
+            </div>
+            
+            <!-- Botão discreto para gerenciar os links diretamente na tela se desejar -->
+            <button 
+                type="button"
+                onclick="abrirModalLinks()"
+                class="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-xs font-semibold border border-aco/20 transition-colors shadow-sm"
+                title="Definir URLs de destino dos botões"
+            >
+                <i data-lucide="link" class="w-3.5 h-3.5 text-trator"></i>
+                <span>Gerenciar Links dos Botões</span>
+            </button>
+        </div>
+
+        <!-- GRID COM OS 4 BOTÕES OBRIGATÓRIOS NA ORDEM EXATA -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <!-- ========================================================= -->
+            <!-- BOTÃO 1: CLIENTE                                          -->
+            <!-- ========================================================= -->
+            <!-- INSIRA O LINK DE CLIENTE NO ATRIBUTO href ABAIXO -->
+            <a 
+                id="btn-cliente"
+                href="#" 
+                data-link="cliente"
+                onclick="verificarLink(event, 'cliente', 'Cliente')"
+                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-petroleo hover:border-petroleo focus:outline-none focus:ring-4 focus:ring-petroleo/30"
+            >
+                <div>
+                    <!-- Topo do Card: Número e Ícone -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-xl bg-petroleo text-white flex items-center justify-center shadow-inner group-hover:bg-petroleoHover transition-colors">
+                            <i data-lucide="users" class="w-7 h-7"></i>
+                        </div>
+                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-petroleo transition-colors">01</span>
+                    </div>
+
+                    <!-- Título e Descrição -->
+                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco group-hover:text-petroleo transition-colors mb-2">
+                        Cliente
+                    </h3>
+                    <p class="text-sm text-aco/70 leading-relaxed">
+                        Cadastro, consulta de frotas, histórico de lubrificação e dados de parceiros.
+                    </p>
+                </div>
+
+                <!-- Rodapé do Botão -->
+                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-petroleo">
+                    <span>Acessar Módulo</span>
+                    <span class="w-8 h-8 rounded-lg bg-petroleo/10 group-hover:bg-petroleo group-hover:text-white flex items-center justify-center transition-colors">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- ========================================================= -->
+            <!-- BOTÃO 2: COTAÇÃO                                          -->
+            <!-- ========================================================= -->
+            <!-- INSIRA O LINK DE COTAÇÃO NO ATRIBUTO href ABAIXO -->
+            <a 
+                id="btn-cotacao"
+                href="#" 
+                data-link="cotacao"
+                onclick="verificarLink(event, 'cotacao', 'Cotação')"
+                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-trator hover:border-trator focus:outline-none focus:ring-4 focus:ring-trator/30"
+            >
+                <div>
+                    <!-- Topo do Card: Número e Ícone -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-xl bg-trator text-white flex items-center justify-center shadow-inner group-hover:bg-tratorHover transition-colors">
+                            <i data-lucide="calculator" class="w-7 h-7"></i>
+                        </div>
+                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-trator transition-colors">02</span>
+                    </div>
+
+                    <!-- Título e Descrição -->
+                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco group-hover:text-trator transition-colors mb-2">
+                        Cotação
+                    </h3>
+                    <p class="text-sm text-aco/70 leading-relaxed">
+                        Orçamentos rápidos de graxas, óleos lubrificantes, filtros e serviços técnicos.
+                    </p>
+                </div>
+
+                <!-- Rodapé do Botão -->
+                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-trator">
+                    <span>Acessar Módulo</span>
+                    <span class="w-8 h-8 rounded-lg bg-trator/10 group-hover:bg-trator group-hover:text-white flex items-center justify-center transition-colors">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- ========================================================= -->
+            <!-- BOTÃO 3: FATURAMENTO                                      -->
+            <!-- ========================================================= -->
+            <!-- INSIRA O LINK DE FATURAMENTO NO ATRIBUTO href ABAIXO -->
+            <a 
+                id="btn-faturamento"
+                href="#" 
+                data-link="faturamento"
+                onclick="verificarLink(event, 'faturamento', 'Faturamento')"
+                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-ambar hover:border-ambar focus:outline-none focus:ring-4 focus:ring-ambar/30"
+            >
+                <div>
+                    <!-- Topo do Card: Número e Ícone -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-xl bg-ambar text-white flex items-center justify-center shadow-inner group-hover:brightness-95 transition-all">
+                            <i data-lucide="receipt" class="w-7 h-7"></i>
+                        </div>
+                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-ambar transition-colors">03</span>
+                    </div>
+
+                    <!-- Título e Descrição -->
+                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco group-hover:text-ambar transition-colors mb-2">
+                        Faturamento
+                    </h3>
+                    <p class="text-sm text-aco/70 leading-relaxed">
+                        Emissão de notas fiscais, controle financeiro, boletos e fechamento de pedidos.
+                    </p>
+                </div>
+
+                <!-- Rodapé do Botão -->
+                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-amber-700">
+                    <span>Acessar Módulo</span>
+                    <span class="w-8 h-8 rounded-lg bg-ambar/15 group-hover:bg-ambar group-hover:text-white flex items-center justify-center transition-colors">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- ========================================================= -->
+            <!-- BOTÃO 4: CONFIGURAÇÃO                                     -->
+            <!-- ========================================================= -->
+            <!-- INSIRA O LINK DE CONFIGURAÇÃO NO ATRIBUTO href ABAIXO -->
+            <a 
+                id="btn-configuracao"
+                href="#" 
+                data-link="configuracao"
+                onclick="verificarLink(event, 'configuracao', 'Configuração')"
+                class="group card-industrial relative flex flex-col justify-between bg-white rounded-2xl p-6 sm:p-7 shadow-md hover:shadow-xl border-2 border-aco/15 border-b-aco hover:border-aco focus:outline-none focus:ring-4 focus:ring-aco/30"
+            >
+                <div>
+                    <!-- Topo do Card: Número e Ícone -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 rounded-xl bg-aco text-ambar flex items-center justify-center shadow-inner group-hover:bg-black transition-colors">
+                            <i data-lucide="settings" class="w-7 h-7 gear-spin"></i>
+                        </div>
+                        <span class="font-display text-sm font-bold text-aco/30 group-hover:text-aco transition-colors">04</span>
+                    </div>
+
+                    <!-- Título e Descrição -->
+                    <h3 class="font-display text-2xl sm:text-3xl font-bold uppercase text-aco mb-2">
+                        Configuração
+                    </h3>
+                    <p class="text-sm text-aco/70 leading-relaxed">
+                        Parâmetros do sistema, tabela de preços, usuários e links de integração.
+                    </p>
+                </div>
+
+                <!-- Rodapé do Botão -->
+                <div class="mt-8 pt-4 border-t border-aco/10 flex items-center justify-between text-sm font-bold text-aco">
+                    <span>Acessar Módulo</span>
+                    <span class="w-8 h-8 rounded-lg bg-aco/10 group-hover:bg-aco group-hover:text-ambar flex items-center justify-center transition-colors">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </span>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. RODAPÉ (FOOTER)                                                    -->
+    <!-- ===================================================================== -->
+    <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Identificação da Empresa -->
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
+                        <span class="font-display text-xl font-bold uppercase tracking-wider text-white">
+                            Marcão da Graxa
+                        </span>
+                    </div>
+                    <p class="text-sm text-creme/75">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>
+                </div>
+
+                <!-- Contatos Institucionais -->
+                <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
+                        <span>Atendimento Técnico & Comercial</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-ambar"></i>
+                        <span>Qualidade Garantida</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha Inferior de Direitos Autorais -->
+            <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
+                <p>&copy; <span id="ano-atual">2026</span> Marcão da Graxa. Todos os direitos reservados.</p>
+                <p>Portal Administrativo v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL PARA CONFIGURAR / TESTAR LINKS SEM PRECISAR EDITAR CÓDIGO       -->
+    <!-- ===================================================================== -->
+    <div id="modal-links" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-5">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="link" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-xl font-bold uppercase text-aco">Configurar Links dos Botões</h3>
+                        <p class="text-xs text-aco/70">Cole os endereços (URLs) para cada módulo</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalLinks()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Aviso Informativo -->
+            <div id="aviso-modal" class="hidden mb-4 p-3 rounded-xl bg-ambar/20 border border-ambar text-aco text-xs font-medium flex items-start gap-2">
+                <i data-lucide="info" class="w-4 h-4 text-trator flex-shrink-0 mt-0.5"></i>
+                <span id="texto-aviso-modal">Este botão ainda não possui um link configurado. Preencha abaixo para ativá-lo.</span>
+            </div>
+
+            <!-- Formulário de URLs -->
+            <form id="form-links" onsubmit="salvarLinks(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-petroleo mb-1">1. Link do Botão: Cliente</label>
+                    <input type="url" id="input-cliente" placeholder="https://seu-sistema.com/clientes" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-petroleo">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-trator mb-1">2. Link do Botão: Cotação</label>
+                    <input type="url" id="input-cotacao" placeholder="https://seu-sistema.com/cotacao" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-trator">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-amber-700 mb-1">3. Link do Botão: Faturamento</label>
+                    <input type="url" id="input-faturamento" placeholder="https://seu-sistema.com/faturamento" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-ambar">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-aco mb-1">4. Link do Botão: Configuração</label>
+                    <input type="url" id="input-configuracao" placeholder="https://seu-sistema.com/configuracao" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm focus:outline-none focus:border-aco">
+                </div>
+
+                <div class="pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
+                    <button type="button" onclick="fecharModalLinks()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-trator hover:bg-tratorHover text-white shadow-md transition-colors flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span>Salvar Links</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPTS DE INTERATIVIDADE                                             -->
+    <!-- ===================================================================== -->
+    <script>
+        // Inicializa os ícones Lucide
+        lucide.createIcons();
+
+        // Atualiza data e ano no cabeçalho e rodapé
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
+        document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+        // Chave para salvar links no navegador caso o usuário configure pela tela
+        const STORAGE_KEY = 'marcao_da_graxa_links_v1';
+        const modulos = ['cliente', 'cotacao', 'faturamento', 'configuracao'];
+
+        // Carrega links salvos (se houver)
+        function carregarLinks() {
+            try {
+                const salvos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                modulos.forEach(mod => {
+                    const btn = document.getElementById(`btn-${mod}`);
+                    // Só sobrescreve se o href no HTML ainda estiver como "#"
+                    if (btn && btn.getAttribute('href') === '#' && salvos[mod]) {
+                        btn.setAttribute('href', salvos[mod]);
+                    }
+                });
+            } catch (e) {
+                console.error('Erro ao carregar links salvos:', e);
+            }
+        }
+
+        // Verifica se o botão já possui um link real antes de navegar
+        function verificarLink(event, chave, nomeModulo) {
+            const btn = document.getElementById(`btn-${chave}`);
+            const hrefAtual = btn.getAttribute('href');
+
+            // Se ainda estiver "#", abre o painel amigável para o usuário colar o link
+            if (!hrefAtual || hrefAtual === '#') {
+                event.preventDefault();
+                abrirModalLinks(`O botão "${nomeModulo}" ainda está aguardando seu link. Cole o endereço abaixo ou insira diretamente no código HTML.`);
+            }
+        }
+
+        // Abre o modal de configuração de URLs
+        function abrirModalLinks(mensagemAviso = '') {
+            const modal = document.getElementById('modal-links');
+            const aviso = document.getElementById('aviso-modal');
+            const textoAviso = document.getElementById('texto-aviso-modal');
+
+            // Preenche os inputs com os hrefs atuais
+            modulos.forEach(mod => {
+                const btn = document.getElementById(`btn-${mod}`);
+                const href = btn.getAttribute('href');
+                document.getElementById(`input-${mod}`).value = (href && href !== '#') ? href : '';
+            });
+
+            if (mensagemAviso) {
+                textoAviso.textContent = mensagemAviso;
+                aviso.classList.remove('hidden');
+            } else {
+                aviso.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Fecha o modal
+        function fecharModalLinks() {
+            const modal = document.getElementById('modal-links');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Salva os links inseridos pelo usuário
+        function salvarLinks(event) {
+            event.preventDefault();
+            const novosLinks = {};
+
+            modulos.forEach(mod => {
+                const valor = document.getElementById(`input-${mod}`).value.trim();
+                const btn = document.getElementById(`btn-${mod}`);
+                if (valor) {
+                    btn.setAttribute('href', valor);
+                    novosLinks[mod] = valor;
+                } else {
+                    btn.setAttribute('href', '#');
+                }
+            });
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(novosLinks));
+            } catch (e) {
+                console.warn('Não foi possível salvar no localStorage:', e);
+            }
+
+            fecharModalLinks();
+        }
+
+        // Inicializa ao carregar a página
+        window.addEventListener('DOMContentLoaded', carregarLinks);
+    </script>
+</body>
+</html>
