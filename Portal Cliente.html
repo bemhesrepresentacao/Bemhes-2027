@@ -207,7 +207,7 @@
                     type="text" 
                     id="campo-busca" 
                     oninput="filtrarClientes()"
-                    placeholder="Buscar por código, nome do cliente, grupo familiar, cidade ou estado..." 
+                    placeholder="Buscar por ID, código, nome do cliente, grupo familiar, cidade ou estado..." 
                     class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-creme/60 border border-aco/20 text-sm text-aco placeholder-aco/50 focus:outline-none focus:border-petroleo focus:bg-white transition-colors"
                 >
             </div>
@@ -236,6 +236,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-aco text-creme font-display uppercase text-sm tracking-wider border-b-2 border-trator">
+                            <th class="py-4 px-4 sm:px-5 whitespace-nowrap">ID</th>
                             <th class="py-4 px-4 sm:px-5 whitespace-nowrap">Código do Cliente</th>
                             <th class="py-4 px-4 sm:px-5">Nome</th>
                             <th class="py-4 px-4 sm:px-5">Grupo Familiar</th>
@@ -260,10 +261,10 @@
             </div>
         </div>
 
-        <!-- Nota informativa discreta sobre persistência local -->
+        <!-- Nota informativa discreta -->
         <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
-            <span>Dica: Clique sobre o <strong>Nome</strong> de qualquer cliente para consultar sua ficha completa. Alterações (Novo, Editar e Excluir) são salvas automaticamente no navegador e podem ser sincronizadas novamente com a planilha a qualquer momento.</span>
+            <span>Dica: Ao adicionar um novo cliente, a coluna <strong>ID</strong> é gerada automaticamente no padrão <strong>MCB-[Iniciais do Nome]</strong>. Clique sobre o <strong>Nome</strong> de qualquer cliente para consultar sua ficha completa.</span>
         </p>
 
     </main>
@@ -323,9 +324,14 @@
                         <i data-lucide="user-check" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <span id="detalhe-codigo-badge" class="inline-block px-2.5 py-0.5 rounded bg-trator/15 text-trator font-bold text-xs uppercase tracking-wider mb-1">
-                            CÓD: ---
-                        </span>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span id="detalhe-id-badge" class="inline-block px-2.5 py-0.5 rounded bg-petroleo/15 text-petroleo font-mono font-bold text-xs uppercase tracking-wider">
+                                ID: ---
+                            </span>
+                            <span id="detalhe-codigo-badge" class="inline-block px-2.5 py-0.5 rounded bg-trator/15 text-trator font-bold text-xs uppercase tracking-wider">
+                                CÓD: ---
+                            </span>
+                        </div>
                         <h3 id="detalhe-titulo-nome" class="font-display text-2xl font-bold uppercase text-aco leading-tight">
                             Nome do Cliente
                         </h3>
@@ -387,6 +393,7 @@
             <!-- Formulário Dinâmico (Renderiza todas as colunas da planilha) -->
             <form id="form-cliente" onsubmit="salvarCliente(event)">
                 <input type="hidden" id="cliente-index-edicao" value="-1">
+                <input type="hidden" id="cliente-modo-edicao" value="novo">
                 
                 <div id="form-campos-dinamicos" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
                     <!-- Inputs gerados dinamicamente conforme as colunas da planilha -->
@@ -459,16 +466,17 @@
         // Configurações da Planilha Google
         const PUB_ID = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
         const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pubhtml`;
-        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v1';
-        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v1';
+        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v2';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v2';
 
         // Estado global da aplicação
         let listaClientes = [];
         let colunasPlanilha = [];
         let indiceParaExcluir = -1;
 
-        // Colunas padrão obrigatórias (garante funcionamento mesmo antes da planilha carregar)
+        // Colunas padrão obrigatórias (incluindo ID)
         const COLUNAS_PADRAO = [
+            'ID',
             'CODIGO DO CLIENTE',
             'NOME',
             'GRUPO FAMILIAR',
@@ -484,6 +492,26 @@
                 .replace(/[\u0300-\u036f]/g, '')
                 .trim()
                 .toUpperCase();
+        }
+
+        // =====================================================================
+        // REGRA DE GERAÇÃO DE ID: "MCB-" + INICIAIS DO NOME DO CLIENTE
+        // Ex: "João da Silva" -> "MCB-JDS" | "Marcão da Graxa" -> "MCB-MDG"
+        // =====================================================================
+        function gerarIdPadraoMCB(nomeCompleto) {
+            const limpo = (nomeCompleto || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .replace(/[^a-zA-Z0-9\s]/g, ' ') // Remove caracteres especiais
+                .trim()
+                .toUpperCase();
+
+            if (!limpo) return 'MCB-';
+
+            const palavras = limpo.split(/\s+/).filter(Boolean);
+            const iniciais = palavras.map(palavra => palavra.charAt(0)).join('');
+            return `MCB-${iniciais}`;
         }
 
         // Encontra a chave exata no objeto do cliente correspondente a uma coluna desejada
@@ -517,13 +545,11 @@
             document.getElementById('empty-box').classList.add('hidden');
 
             try {
-                // 1. Busca o HTML publicado para descobrir o gid exato da aba "clientes"
                 let gidClientes = '0';
                 try {
                     const respHtml = await fetch(PUBHTML_URL);
                     const htmlText = await respHtml.text();
                     
-                    // Procura no script/estrutura do pubhtml o item com nome "clientes" e seu gid
                     const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
                     let match;
                     while ((match = regexAba.exec(htmlText)) !== null) {
@@ -533,7 +559,6 @@
                         }
                     }
 
-                    // Fallback caso a estrutura HTML use links/abas diferentes
                     if (gidClientes === '0') {
                         const doc = new DOMParser().parseFromString(htmlText, 'text/html');
                         const linksAbas = doc.querySelectorAll('a, li');
@@ -552,13 +577,11 @@
                     console.warn('Não foi possível ler o pubhtml diretamente para extrair GID, tentando CSV direto:', e);
                 }
 
-                // 2. Baixa o CSV da aba "clientes"
                 const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${gidClientes}&single=true&output=csv`;
                 const respCsv = await fetch(csvUrl);
                 if (!respCsv.ok) throw new Error('Falha ao baixar CSV da planilha.');
                 const csvText = await respCsv.text();
 
-                // 3. Faz o parse do CSV com PapaParse
                 const resultado = Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
@@ -566,18 +589,19 @@
                 });
 
                 if (resultado.data && resultado.data.length > 0) {
-                    // Filtra colunas vazias geradas pelo Google Sheets
                     const colsDetectadas = (resultado.meta.fields || []).filter(c => c && c.trim() !== '');
                     
-                    // Garante que as colunas principais existam na lista de campos
                     colunasPlanilha = [...colsDetectadas];
                     COLUNAS_PADRAO.forEach(cp => {
                         if (!colunasPlanilha.some(c => normalizarTexto(c) === normalizarTexto(cp))) {
-                            colunasPlanilha.push(cp);
+                            if (cp === 'ID') {
+                                colunasPlanilha.unshift(cp);
+                            } else {
+                                colunasPlanilha.push(cp);
+                            }
                         }
                     });
 
-                    // Filtra linhas totalmente em branco
                     listaClientes = resultado.data.filter(row => {
                         return Object.values(row).some(val => val && val.toString().trim() !== '');
                     });
@@ -600,7 +624,7 @@
             }
         }
 
-        // Inicializa dados: usa cache local se já houver edições, ou baixa direto da planilha
+        // Inicializa dados
         async function inicializarSistema() {
             const dadosSalvos = localStorage.getItem(STORAGE_CLIENTES_KEY);
             const colsSalvas = localStorage.getItem(STORAGE_COLUNAS_KEY);
@@ -609,6 +633,9 @@
                 try {
                     listaClientes = JSON.parse(dadosSalvos);
                     colunasPlanilha = JSON.parse(colsSalvas);
+                    if (!colunasPlanilha.some(c => normalizarTexto(c) === 'ID')) {
+                        colunasPlanilha.unshift('ID');
+                    }
                     atualizarStatus(`Dados carregados (${listaClientes.length} clientes na base)`, 'ok');
                     renderizarTabela();
                     return;
@@ -638,7 +665,7 @@
             }
         }
 
-        // Renderiza a tabela com as 5 colunas solicitadas + ações
+        // Renderiza a tabela com ID + as 5 colunas principais + ações
         function renderizarTabela(filtro = '') {
             const tbody = document.getElementById('tabela-clientes-body');
             const loadingBox = document.getElementById('loading-box');
@@ -655,12 +682,13 @@
                 .map((cliente, indexOriginal) => ({ cliente, indexOriginal }))
                 .filter(({ cliente }) => {
                     if (!termo) return true;
+                    const idVal = normalizarTexto(obterValorCampo(cliente, 'ID'));
                     const cod = normalizarTexto(obterValorCampo(cliente, 'CODIGO DO CLIENTE'));
                     const nome = normalizarTexto(obterValorCampo(cliente, 'NOME'));
                     const grupo = normalizarTexto(obterValorCampo(cliente, 'GRUPO FAMILIAR'));
                     const cidade = normalizarTexto(obterValorCampo(cliente, 'CIDADE'));
                     const estado = normalizarTexto(obterValorCampo(cliente, 'ESTADO'));
-                    return cod.includes(termo) || nome.includes(termo) || grupo.includes(termo) || cidade.includes(termo) || estado.includes(termo);
+                    return idVal.includes(termo) || cod.includes(termo) || nome.includes(termo) || grupo.includes(termo) || cidade.includes(termo) || estado.includes(termo);
                 });
 
             contador.textContent = filtrados.length;
@@ -675,6 +703,7 @@
             tabelaWrapper.classList.remove('hidden');
 
             filtrados.forEach(({ cliente, indexOriginal }) => {
+                const idCliente = obterValorCampo(cliente, 'ID') || '—';
                 const codigo = obterValorCampo(cliente, 'CODIGO DO CLIENTE') || '—';
                 const nome = obterValorCampo(cliente, 'NOME') || 'Sem Nome';
                 const grupo = obterValorCampo(cliente, 'GRUPO FAMILIAR') || '—';
@@ -685,6 +714,11 @@
                 tr.className = 'hover:bg-creme/80 transition-colors group';
 
                 tr.innerHTML = `
+                    <td class="py-3.5 px-4 sm:px-5 font-mono font-bold text-trator whitespace-nowrap">
+                        <span class="px-2.5 py-1 rounded-md bg-trator/10 border border-trator/20 text-xs">
+                            ${escapeHTML(idCliente)}
+                        </span>
+                    </td>
                     <td class="py-3.5 px-4 sm:px-5 font-mono font-bold text-petroleo whitespace-nowrap">
                         <span class="px-2.5 py-1 rounded-md bg-petroleo/10 border border-petroleo/15 text-xs">
                             ${escapeHTML(codigo)}
@@ -759,16 +793,17 @@
             const cliente = listaClientes[index];
             if (!cliente) return;
 
+            const idVal = obterValorCampo(cliente, 'ID') || 'S/N';
             const codigo = obterValorCampo(cliente, 'CODIGO DO CLIENTE') || 'S/N';
             const nome = obterValorCampo(cliente, 'NOME') || 'Cliente';
 
-            document.getElementById('detalhe-codigo-badge').textContent = `CÓDIGO DO CLIENTE: ${codigo}`;
+            document.getElementById('detalhe-id-badge').textContent = `ID: ${idVal}`;
+            document.getElementById('detalhe-codigo-badge').textContent = `CÓDIGO: ${codigo}`;
             document.getElementById('detalhe-titulo-nome').textContent = nome;
 
             const grid = document.getElementById('detalhes-grid');
             grid.innerHTML = '';
 
-            // Exibe todas as colunas/propriedades existentes do cliente
             const chavesExibir = colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(cliente);
 
             chavesExibir.forEach(coluna => {
@@ -786,7 +821,6 @@
                 grid.appendChild(cardCampo);
             });
 
-            // Configura os botões de Editar e Excluir dentro do modal de consulta
             document.getElementById('btn-detalhe-editar').onclick = () => {
                 fecharModalDetalhes();
                 abrirModalFormulario('editar', index);
@@ -817,16 +851,18 @@
             const subtitulo = document.getElementById('form-subtitulo');
             const iconBox = document.getElementById('form-icon-box');
             const inputIndex = document.getElementById('cliente-index-edicao');
+            const inputModo = document.getElementById('cliente-modo-edicao');
             const containerCampos = document.getElementById('form-campos-dinamicos');
 
             inputIndex.value = index;
+            inputModo.value = modo;
             containerCampos.innerHTML = '';
 
             const clienteAtual = (modo === 'editar' && index >= 0) ? listaClientes[index] : {};
 
             if (modo === 'novo') {
                 titulo.textContent = 'Adicionar Novo Cliente';
-                subtitulo.textContent = 'Preencha os campos abaixo para cadastrar um novo cliente';
+                subtitulo.textContent = 'O ID (MCB-Iniciais) será gerado automaticamente ao digitar o nome';
                 iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
                 iconBox.innerHTML = '<i data-lucide="user-plus" class="w-5 h-5"></i>';
             } else {
@@ -836,12 +872,14 @@
                 iconBox.innerHTML = '<i data-lucide="pencil" class="w-5 h-5"></i>';
             }
 
-            // Gera um input para cada coluna da planilha
             const campos = colunasPlanilha.length > 0 ? colunasPlanilha : COLUNAS_PADRAO;
 
             campos.forEach((coluna, idx) => {
                 const colNorm = normalizarTexto(coluna);
-                const obrigatorio = (colNorm === 'CODIGO DO CLIENTE' || colNorm === 'NOME');
+                const ehCampoId = (colNorm === 'ID');
+                const ehCampoNome = (colNorm === 'NOME');
+                const obrigatorio = (colNorm === 'CODIGO DO CLIENTE' || ehCampoNome || ehCampoId);
+                
                 let valorInicial = (modo === 'editar') ? (obterValorCampo(clienteAtual, coluna) || clienteAtual[coluna] || '') : '';
 
                 // Sugere próximo código automaticamente ao criar novo cliente
@@ -849,24 +887,35 @@
                     valorInicial = sugerirProximoCodigo();
                 }
 
+                // Inicializa o ID padrão MCB- ao adicionar novo cliente
+                if (modo === 'novo' && ehCampoId) {
+                    valorInicial = 'MCB-';
+                }
+
                 const div = document.createElement('div');
-                // Campos longos ocupam 2 colunas no grid
-                if (colNorm.includes('ENDERECO') || colNorm.includes('OBSERVA') || colNorm === 'NOME') {
+                if (colNorm.includes('ENDERECO') || colNorm.includes('OBSERVA') || ehCampoNome) {
                     div.className = 'sm:col-span-2';
                 }
 
+                // Adiciona listener em tempo real no campo NOME para atualizar o campo ID automaticamente
+                const eventoInputNome = (ehCampoNome && modo === 'novo') ? 'oninput="atualizarIdAutomaticoPorNome(this.value)"' : '';
+                const identificadorCampo = ehCampoId ? 'id="input-campo-id"' : `id="campo-form-${idx}"`;
+                const estiloId = ehCampoId ? 'bg-cremeEscuro/70 font-mono font-bold text-trator' : 'bg-white text-aco';
+
                 div.innerHTML = `
-                    <label for="campo-form-${idx}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                    <label for="${ehCampoId ? 'input-campo-id' : `campo-form-${idx}`}" class="block text-xs font-bold uppercase text-petroleo mb-1">
                         ${escapeHTML(coluna)} ${obrigatorio ? '<span class="text-trator">*</span>' : ''}
+                        ${(ehCampoId && modo === 'novo') ? '<span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Automático: MCB-Iniciais)</span>' : ''}
                     </label>
                     <input 
                         type="text" 
-                        id="campo-form-${idx}" 
+                        ${identificadorCampo}
                         data-coluna="${escapeHTML(coluna)}"
                         value="${escapeHTML(valorInicial)}"
                         ${obrigatorio ? 'required' : ''}
-                        placeholder="Digite ${escapeHTML(coluna.toLowerCase())}"
-                        class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm text-aco focus:outline-none focus:border-trator transition-colors"
+                        ${eventoInputNome}
+                        placeholder="${ehCampoId ? 'MCB-INICIAIS' : `Digite ${escapeHTML(coluna.toLowerCase())}`}"
+                        class="w-full px-3.5 py-2.5 rounded-xl ${estiloId} border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
                     >
                 `;
                 containerCampos.appendChild(div);
@@ -875,6 +924,14 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             lucide.createIcons();
+        }
+
+        // Atualiza o campo ID em tempo real conforme o usuário digita o NOME do cliente
+        function atualizarIdAutomaticoPorNome(nomeDigitado) {
+            const inputId = document.getElementById('input-campo-id');
+            if (inputId) {
+                inputId.value = gerarIdPadraoMCB(nomeDigitado);
+            }
         }
 
         function sugerirProximoCodigo() {
@@ -896,6 +953,7 @@
         function salvarCliente(event) {
             event.preventDefault();
             const index = parseInt(document.getElementById('cliente-index-edicao').value, 10);
+            const modo = document.getElementById('cliente-modo-edicao').value;
             const inputs = document.querySelectorAll('#form-campos-dinamicos input[data-coluna]');
             
             const registro = (index >= 0 && listaClientes[index]) ? { ...listaClientes[index] } : {};
@@ -905,12 +963,24 @@
                 registro[nomeColuna] = input.value.trim();
             });
 
+            // Garante que ao adicionar novo cliente a coluna ID siga exatamente "MCB-iniciais"
+            if (modo === 'novo') {
+                const nomeCliente = obterValorCampo(registro, 'NOME');
+                const idGerado = gerarIdPadraoMCB(nomeCliente);
+                const chaveId = Object.keys(registro).find(k => normalizarTexto(k) === 'ID') || 'ID';
+                
+                // Se o usuário não customizou manualmente além de MCB-, aplica o padrão exato
+                if (!registro[chaveId] || registro[chaveId] === 'MCB-' || registro[chaveId].startsWith('MCB-')) {
+                    registro[chaveId] = idGerado;
+                }
+            }
+
             if (index >= 0) {
                 listaClientes[index] = registro;
                 mostrarToast('Dados do cliente atualizados com sucesso!');
             } else {
                 listaClientes.unshift(registro);
-                mostrarToast('Novo cliente cadastrado com sucesso!');
+                mostrarToast(`Novo cliente cadastrado! ID gerado: ${obterValorCampo(registro, 'ID')}`);
             }
 
             salvarNoStorage();
@@ -928,8 +998,8 @@
 
             indiceParaExcluir = index;
             const nome = obterValorCampo(cliente, 'NOME') || 'este cliente';
-            const cod = obterValorCampo(cliente, 'CODIGO DO CLIENTE');
-            document.getElementById('excluir-nome-cliente').textContent = cod ? `${cod} - ${nome}` : nome;
+            const idVal = obterValorCampo(cliente, 'ID');
+            document.getElementById('excluir-nome-cliente').textContent = idVal ? `${idVal} - ${nome}` : nome;
 
             document.getElementById('btn-confirmar-exclusao').onclick = confirmarExclusao;
 
@@ -980,7 +1050,7 @@
             setTimeout(() => {
                 toast.classList.add('hidden');
                 toast.classList.remove('flex');
-            }, 3500);
+            }, 4000);
         }
 
         // Fecha modais ao pressionar ESC
