@@ -396,7 +396,7 @@
                 <input type="hidden" id="cliente-modo-edicao" value="novo">
                 
                 <div id="form-campos-dinamicos" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
-                    <!-- Inputs gerados dinamicamente conforme as colunas da planilha -->
+                    <!-- Inputs e selects gerados dinamicamente conforme as colunas da planilha -->
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
@@ -453,7 +453,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS & CRUD                        -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS, MÁSCARAS & CRUD              -->
     <!-- ===================================================================== -->
     <script>
         // Inicializa ícones Lucide e datas
@@ -466,22 +466,40 @@
         // Configurações da Planilha Google
         const PUB_ID = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
         const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pubhtml`;
-        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v2';
-        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v2';
+        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v3';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v3';
 
         // Estado global da aplicação
         let listaClientes = [];
         let colunasPlanilha = [];
         let indiceParaExcluir = -1;
 
-        // Colunas padrão obrigatórias (incluindo ID)
+        // Colunas padrão obrigatórias (incluindo ID e campos formatados)
         const COLUNAS_PADRAO = [
             'ID',
             'CODIGO DO CLIENTE',
             'NOME',
             'GRUPO FAMILIAR',
             'CIDADE',
-            'ESTADO'
+            'ESTADO',
+            'DATA DE NASCIMENTO',
+            'FONE FIXO',
+            'FONE CELULAR1',
+            'FONE CELULAR2',
+            'EMAIL',
+            'CEP',
+            'CNPJ',
+            'CPF',
+            'USO E CONSUMO PRÓPRIO',
+            'INDUSTRIALIZAÇÃO',
+            'COMERCIALIZAÇÃO'
+        ];
+
+        // Colunas de seleção (SIM / NÃO)
+        const COLUNAS_SELECAO = [
+            'USO E CONSUMO PRÓPRIO',
+            'INDUSTRIALIZAÇÃO',
+            'COMERCIALIZAÇÃO'
         ];
 
         // Normaliza texto para comparação de cabeçalhos (remove acentos e espaços extras)
@@ -496,14 +514,13 @@
 
         // =====================================================================
         // REGRA DE GERAÇÃO DE ID: "MCB-" + INICIAIS DO NOME DO CLIENTE
-        // Ex: "João da Silva" -> "MCB-JDS" | "Marcão da Graxa" -> "MCB-MDG"
         // =====================================================================
         function gerarIdPadraoMCB(nomeCompleto) {
             const limpo = (nomeCompleto || '')
                 .toString()
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                .replace(/[^a-zA-Z0-9\s]/g, ' ') // Remove caracteres especiais
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9\s]/g, ' ')
                 .trim()
                 .toUpperCase();
 
@@ -512,6 +529,144 @@
             const palavras = limpo.split(/\s+/).filter(Boolean);
             const iniciais = palavras.map(palavra => palavra.charAt(0)).join('');
             return `MCB-${iniciais}`;
+        }
+
+        // =====================================================================
+        // FUNÇÕES DE FORMATAÇÃO E MÁSCARAS
+        // =====================================================================
+        function apenasDigitos(valor) {
+            return (valor || '').toString().replace(/\D/g, '');
+        }
+
+        // Converte data entre DD/MM/AAAA e AAAA-MM-DD para input type="date"
+        function paraInputDate(valor) {
+            if (!valor) return '';
+            const str = valor.toString().trim();
+            // Já está em AAAA-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+            // Está em DD/MM/AAAA
+            const matchBR = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (matchBR) {
+                return `${matchBR[3]}-${matchBR[2]}-${matchBR[1]}`;
+            }
+            return '';
+        }
+
+        // Formata AAAA-MM-DD para DD/MM/AAAA
+        function paraDataBR(valor) {
+            if (!valor) return '';
+            const str = valor.toString().trim();
+            const matchISO = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (matchISO) {
+                return `${matchISO[3]}/${matchISO[2]}/${matchISO[1]}`;
+            }
+            return str;
+        }
+
+        // Telefone fixo: (00) 0000-0000
+        function formatarFoneFixo(valor) {
+            const d = apenasDigitos(valor).slice(0, 10);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return `(${d}`;
+            if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+            return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+        }
+
+        // Celular: (00) 00000-0000
+        function formatarCelular(valor) {
+            const d = apenasDigitos(valor).slice(0, 11);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return `(${d}`;
+            if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+            return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+        }
+
+        // CEP: 00000-000
+        function formatarCEP(valor) {
+            const d = apenasDigitos(valor).slice(0, 8);
+            if (d.length === 0) return '';
+            if (d.length <= 5) return d;
+            return `${d.slice(0, 5)}-${d.slice(5)}`;
+        }
+
+        // CPF: 000.000.000-00
+        function formatarCPF(valor) {
+            const d = apenasDigitos(valor).slice(0, 11);
+            if (d.length === 0) return '';
+            if (d.length <= 3) return d;
+            if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+            if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+            return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+        }
+
+        // CNPJ: 00.000.000/0000-00
+        function formatarCNPJ(valor) {
+            const d = apenasDigitos(valor).slice(0, 14);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return d;
+            if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+            if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+            if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+            return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+        }
+
+        // Normaliza valor de seleção para "SIM" ou "NAO" / ""
+        function normalizarSelecao(valor) {
+            const v = normalizarTexto(valor);
+            if (v === 'SIM' || v === 'S' || v === 'TRUE' || v === '1' || v === 'X') return 'SIM';
+            if (v === 'NAO' || v === 'NÃO' || v === 'N' || v === 'FALSE' || v === '0') return 'NAO';
+            return '';
+        }
+
+        // Formata o valor de acordo com o tipo da coluna para exibição ou salvamento
+        function aplicarFormatacaoPorColuna(coluna, valor) {
+            if (valor === null || valor === undefined) return '';
+            const colNorm = normalizarTexto(coluna);
+            const str = valor.toString().trim();
+
+            if (colNorm === 'DATA DE NASCIMENTO') {
+                return paraDataBR(str);
+            }
+            if (colNorm === 'FONE FIXO') {
+                return formatarFoneFixo(str);
+            }
+            if (colNorm === 'FONE CELULAR1' || colNorm === 'FONE CELULAR 1' || colNorm === 'FONE CELULAR2' || colNorm === 'FONE CELULAR 2') {
+                return formatarCelular(str);
+            }
+            if (colNorm === 'CEP') {
+                return formatarCEP(str);
+            }
+            if (colNorm === 'CNPJ') {
+                return formatarCNPJ(str);
+            }
+            if (colNorm === 'CPF') {
+                return formatarCPF(str);
+            }
+            if (colNorm === 'EMAIL' || colNorm === 'E-MAIL') {
+                return str.toLowerCase();
+            }
+            if (COLUNAS_SELECAO.some(s => normalizarTexto(s) === colNorm)) {
+                const sel = normalizarSelecao(str);
+                return sel === 'NAO' ? 'NÃO' : sel;
+            }
+            return str;
+        }
+
+        // Aplica máscara em tempo real enquanto o usuário digita no formulário
+        function aplicarMascaraTempoReal(input, colNorm) {
+            if (colNorm === 'FONE FIXO') {
+                input.value = formatarFoneFixo(input.value);
+            } else if (colNorm === 'FONE CELULAR1' || colNorm === 'FONE CELULAR 1' || colNorm === 'FONE CELULAR2' || colNorm === 'FONE CELULAR 2') {
+                input.value = formatarCelular(input.value);
+            } else if (colNorm === 'CEP') {
+                input.value = formatarCEP(input.value);
+            } else if (colNorm === 'CPF') {
+                input.value = formatarCPF(input.value);
+            } else if (colNorm === 'CNPJ') {
+                input.value = formatarCNPJ(input.value);
+            } else if (colNorm === 'EMAIL' || colNorm === 'E-MAIL') {
+                input.value = input.value.replace(/\s+/g, '').toLowerCase();
+            }
         }
 
         // Encontra a chave exata no objeto do cliente correspondente a uma coluna desejada
@@ -618,7 +773,7 @@
                 atualizarStatus('Modo offline / local ativo (verifique se a planilha está publicada na web)', 'erro');
                 
                 if (colunasPlanilha.length === 0) {
-                    colunasPlanilha = [...COLUNAS_PADRAO, 'CPF/CNPJ', 'TELEFONE', 'EMAIL', 'ENDERECO', 'OBSERVACOES'];
+                    colunasPlanilha = [...COLUNAS_PADRAO];
                 }
                 renderizarTabela();
             }
@@ -636,6 +791,11 @@
                     if (!colunasPlanilha.some(c => normalizarTexto(c) === 'ID')) {
                         colunasPlanilha.unshift('ID');
                     }
+                    COLUNAS_PADRAO.forEach(cp => {
+                        if (!colunasPlanilha.some(c => normalizarTexto(c) === normalizarTexto(cp))) {
+                            colunasPlanilha.push(cp);
+                        }
+                    });
                     atualizarStatus(`Dados carregados (${listaClientes.length} clientes na base)`, 'ok');
                     renderizarTabela();
                     return;
@@ -807,7 +967,8 @@
             const chavesExibir = colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(cliente);
 
             chavesExibir.forEach(coluna => {
-                const valor = obterValorCampo(cliente, coluna) || cliente[coluna] || '';
+                const valorBruto = obterValorCampo(cliente, coluna) || cliente[coluna] || '';
+                const valorFormatado = aplicarFormatacaoPorColuna(coluna, valorBruto);
                 const cardCampo = document.createElement('div');
                 cardCampo.className = 'bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm';
                 cardCampo.innerHTML = `
@@ -815,7 +976,7 @@
                         ${escapeHTML(coluna)}
                     </span>
                     <span class="block text-sm font-semibold text-aco break-words">
-                        ${valor ? escapeHTML(valor) : '<span class="text-aco/35 italic font-normal">Não informado</span>'}
+                        ${valorFormatado ? escapeHTML(valorFormatado) : '<span class="text-aco/35 italic font-normal">Não informado</span>'}
                     </span>
                 `;
                 grid.appendChild(cardCampo);
@@ -878,16 +1039,18 @@
                 const colNorm = normalizarTexto(coluna);
                 const ehCampoId = (colNorm === 'ID');
                 const ehCampoNome = (colNorm === 'NOME');
+                const ehDataNasc = (colNorm === 'DATA DE NASCIMENTO');
+                const ehEmail = (colNorm === 'EMAIL' || colNorm === 'E-MAIL');
+                const ehSelecao = COLUNAS_SELECAO.some(s => normalizarTexto(s) === colNorm);
+
                 const obrigatorio = (colNorm === 'CODIGO DO CLIENTE' || ehCampoNome || ehCampoId);
                 
                 let valorInicial = (modo === 'editar') ? (obterValorCampo(clienteAtual, coluna) || clienteAtual[coluna] || '') : '';
 
-                // Sugere próximo código automaticamente ao criar novo cliente
                 if (modo === 'novo' && colNorm === 'CODIGO DO CLIENTE') {
                     valorInicial = sugerirProximoCodigo();
                 }
 
-                // Inicializa o ID padrão MCB- ao adicionar novo cliente
                 if (modo === 'novo' && ehCampoId) {
                     valorInicial = 'MCB-';
                 }
@@ -897,25 +1060,105 @@
                     div.className = 'sm:col-span-2';
                 }
 
-                // Adiciona listener em tempo real no campo NOME para atualizar o campo ID automaticamente
-                const eventoInputNome = (ehCampoNome && modo === 'novo') ? 'oninput="atualizarIdAutomaticoPorNome(this.value)"' : '';
-                const identificadorCampo = ehCampoId ? 'id="input-campo-id"' : `id="campo-form-${idx}"`;
-                const estiloId = ehCampoId ? 'bg-cremeEscuro/70 font-mono font-bold text-trator' : 'bg-white text-aco';
+                const fieldId = ehCampoId ? 'input-campo-id' : `campo-form-${idx}`;
+
+                // 1. Campo de SELEÇÃO (USO E CONSUMO PRÓPRIO, INDUSTRIALIZAÇÃO, COMERCIALIZAÇÃO)
+                if (ehSelecao) {
+                    const selAtual = normalizarSelecao(valorInicial);
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)}
+                        </label>
+                        <select 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-semibold text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                            <option value="" ${selAtual === '' ? 'selected' : ''}>Selecione...</option>
+                            <option value="SIM" ${selAtual === 'SIM' ? 'selected' : ''}>SIM</option>
+                            <option value="NÃO" ${selAtual === 'NAO' ? 'selected' : ''}>NÃO</option>
+                        </select>
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 2. Campo de DATA DE NASCIMENTO (formato de data)
+                if (ehDataNasc) {
+                    const dataISO = paraInputDate(valorInicial);
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)}
+                        </label>
+                        <input 
+                            type="date" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            data-tipo="data"
+                            value="${escapeHTML(dataISO)}"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 3. Demais campos com formatação/máscara adequada
+                let tipoInput = 'text';
+                let placeholder = `Digite ${escapeHTML(coluna.toLowerCase())}`;
+                let inputMode = '';
+
+                if (ehEmail) {
+                    tipoInput = 'email';
+                    placeholder = 'exemplo@dominio.com.br';
+                    inputMode = 'email';
+                } else if (colNorm === 'FONE FIXO') {
+                    placeholder = '(00) 0000-0000';
+                    valorInicial = formatarFoneFixo(valorInicial);
+                    inputMode = 'tel';
+                } else if (colNorm === 'FONE CELULAR1' || colNorm === 'FONE CELULAR 1' || colNorm === 'FONE CELULAR2' || colNorm === 'FONE CELULAR 2') {
+                    placeholder = '(00) 00000-0000';
+                    valorInicial = formatarCelular(valorInicial);
+                    inputMode = 'tel';
+                } else if (colNorm === 'CEP') {
+                    placeholder = '00000-000';
+                    valorInicial = formatarCEP(valorInicial);
+                    inputMode = 'numeric';
+                } else if (colNorm === 'CPF') {
+                    placeholder = '000.000.000-00';
+                    valorInicial = formatarCPF(valorInicial);
+                    inputMode = 'numeric';
+                } else if (colNorm === 'CNPJ') {
+                    placeholder = '00.000.000/0000-00';
+                    valorInicial = formatarCNPJ(valorInicial);
+                    inputMode = 'numeric';
+                } else if (ehCampoId) {
+                    placeholder = 'MCB-INICIAIS';
+                }
+
+                const estiloCampo = ehCampoId
+                    ? 'bg-cremeEscuro/70 font-mono font-bold text-trator'
+                    : 'bg-white text-aco';
+
+                const eventoInput = ehCampoNome && modo === 'novo'
+                    ? `oninput="atualizarIdAutomaticoPorNome(this.value)"`
+                    : `oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"`;
 
                 div.innerHTML = `
-                    <label for="${ehCampoId ? 'input-campo-id' : `campo-form-${idx}`}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                    <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
                         ${escapeHTML(coluna)} ${obrigatorio ? '<span class="text-trator">*</span>' : ''}
                         ${(ehCampoId && modo === 'novo') ? '<span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Automático: MCB-Iniciais)</span>' : ''}
                     </label>
                     <input 
-                        type="text" 
-                        ${identificadorCampo}
+                        type="${tipoInput}" 
+                        id="${fieldId}"
                         data-coluna="${escapeHTML(coluna)}"
+                        ${inputMode ? `inputmode="${inputMode}"` : ''}
                         value="${escapeHTML(valorInicial)}"
                         ${obrigatorio ? 'required' : ''}
-                        ${eventoInputNome}
-                        placeholder="${ehCampoId ? 'MCB-INICIAIS' : `Digite ${escapeHTML(coluna.toLowerCase())}`}"
-                        class="w-full px-3.5 py-2.5 rounded-xl ${estiloId} border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        ${eventoInput}
+                        placeholder="${escapeHTML(placeholder)}"
+                        class="w-full px-3.5 py-2.5 rounded-xl ${estiloCampo} border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
                     >
                 `;
                 containerCampos.appendChild(div);
@@ -954,13 +1197,14 @@
             event.preventDefault();
             const index = parseInt(document.getElementById('cliente-index-edicao').value, 10);
             const modo = document.getElementById('cliente-modo-edicao').value;
-            const inputs = document.querySelectorAll('#form-campos-dinamicos input[data-coluna]');
+            const campos = document.querySelectorAll('#form-campos-dinamicos input[data-coluna], #form-campos-dinamicos select[data-coluna]');
             
             const registro = (index >= 0 && listaClientes[index]) ? { ...listaClientes[index] } : {};
 
-            inputs.forEach(input => {
-                const nomeColuna = input.getAttribute('data-coluna');
-                registro[nomeColuna] = input.value.trim();
+            campos.forEach(campo => {
+                const nomeColuna = campo.getAttribute('data-coluna');
+                const valorFormatado = aplicarFormatacaoPorColuna(nomeColuna, campo.value.trim());
+                registro[nomeColuna] = valorFormatado;
             });
 
             // Garante que ao adicionar novo cliente a coluna ID siga exatamente "MCB-iniciais"
@@ -969,7 +1213,6 @@
                 const idGerado = gerarIdPadraoMCB(nomeCliente);
                 const chaveId = Object.keys(registro).find(k => normalizarTexto(k) === 'ID') || 'ID';
                 
-                // Se o usuário não customizou manualmente além de MCB-, aplica o padrão exato
                 if (!registro[chaveId] || registro[chaveId] === 'MCB-' || registro[chaveId].startsWith('MCB-')) {
                     registro[chaveId] = idGerado;
                 }
