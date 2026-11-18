@@ -121,19 +121,17 @@
                         PORTAL <span class="text-trator">CLIENTES</span>
                     </h1>
                     <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
-                        Base sincronizada em tempo real com a planilha oficial. Pesquise parceiros, consulte frotas e visualize os dados cadastrais da aba <strong>CLIENTES</strong>.
+                        Base sincronizada em tempo real com a planilha oficial. Consulte abaixo os dados essenciais da aba <strong>CLIENTES</strong>.
                     </p>                   
                 </div>
                 
                 <nav>
-                    <a href="Portal Cliente.html"
+                    <a href="index.html"
                        class="inline-flex items-center gap-2 rounded-lg
                               bg-[#944b20] px-5 py-3 text-white font-semibold
                               shadow-lg transition-all duration-300
                               hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
                        title="Voltar para a página inicial">
-
-                        <!-- Seta para a esquerda -->
                         <svg xmlns="http://www.w3.org/2000/svg"
                              width="24" height="24"
                              viewBox="0 0 24 24"
@@ -145,7 +143,6 @@
                             <path d="M19 12H5"/>
                             <path d="M12 19l-7-7 7-7"/>
                         </svg>
-
                         <span>Voltar</span>
                     </a>
                 </nav>
@@ -155,7 +152,7 @@
     </header>
 
     <!-- ===================================================================== -->
-    <!-- 2. CORPO DA PÁGINA: LISTA SINCRONIZADA COM GOOGLE SHEETS ("CLIENTES") -->
+    <!-- 2. CORPO DA PÁGINA: LISTA DE CLIENTES (ID, NOME, MUNICÍPIO, ESTADO, etc)-->
     <!-- ===================================================================== -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
         
@@ -167,7 +164,7 @@
                     Lista de Clientes Cadastrados
                 </h2>
                 <p class="text-sm text-aco/70 mt-1 flex items-center gap-2">
-                    <span>Fonte: Planilha Google Sheets — Aba <strong class="text-petroleo">CLIENTES</strong></span>
+                    <span>Aba do Google Sheets: <strong class="text-petroleo">CLIENTES</strong></span>
                     <span id="status-sync" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                         Conectando...
@@ -193,53 +190,29 @@
                     <i data-lucide="refresh-cw" id="icone-refresh" class="w-4 h-4"></i>
                     <span>Atualizar Lista</span>
                 </button>
-
-                <a 
-                    href="https://docs.google.com/spreadsheets/d/e/2PACX-1vR_7CNxgVfZftz_iZj1U-02akb6iVfQcR7p-7UzU1ajKJQ-ULt2BqnJQngv8__L6TohoLV8baQHtgHA/pubhtml" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-xs sm:text-sm font-semibold border border-aco/20 transition-colors"
-                    title="Abrir planilha original publicada"
-                >
-                    <i data-lucide="external-link" class="w-4 h-4 text-trator"></i>
-                    <span class="hidden sm:inline">Abrir Planilha</span>
-                </a>
             </div>
         </div>
 
         <!-- Barra de Pesquisa e Filtros -->
         <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-aco/15 mb-6">
-            <div class="flex flex-col sm:flex-row gap-3 items-center">
-                <div class="relative flex-1 w-full">
-                    <i data-lucide="search" class="w-5 h-5 text-aco/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                    <input 
-                        type="text" 
-                        id="campo-busca" 
-                        oninput="filtrarClientes()"
-                        placeholder="Pesquisar cliente por nome, razão social, cidade, telefone, CNPJ/CPF ou equipamento..." 
-                        class="w-full pl-11 pr-10 py-3 rounded-xl bg-creme/50 border border-aco/20 text-sm text-aco placeholder:text-aco/45 focus:outline-none focus:bg-white focus:border-petroleo focus:ring-2 focus:ring-petroleo/20 transition-all"
-                    >
-                    <button 
-                        type="button" 
-                        id="btn-limpar-busca"
-                        onclick="limparBusca()"
-                        class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-aco/50 hover:text-trator hover:bg-aco/5"
-                        title="Limpar pesquisa"
-                    >
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <!-- Seletor de Coluna para Filtro Específico -->
-                <div class="w-full sm:w-56">
-                    <select 
-                        id="filtro-coluna" 
-                        onchange="filtrarClientes()"
-                        class="w-full px-3.5 py-3 rounded-xl bg-creme/50 border border-aco/20 text-sm font-medium text-aco focus:outline-none focus:bg-white focus:border-petroleo"
-                    >
-                        <option value="todas">Todas as colunas</option>
-                    </select>
-                </div>
+            <div class="relative w-full">
+                <i data-lucide="search" class="w-5 h-5 text-aco/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="campo-busca" 
+                    oninput="filtrarClientes()"
+                    placeholder="Pesquisar por nome, município, estado, grupo familiar ou usuário..." 
+                    class="w-full pl-11 pr-10 py-3 rounded-xl bg-creme/50 border border-aco/20 text-sm text-aco placeholder:text-aco/45 focus:outline-none focus:bg-white focus:border-petroleo focus:ring-2 focus:ring-petroleo/20 transition-all"
+                >
+                <button 
+                    type="button" 
+                    id="btn-limpar-busca"
+                    onclick="limparBusca()"
+                    class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-aco/50 hover:text-trator hover:bg-aco/5"
+                    title="Limpar pesquisa"
+                >
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
         </div>
 
@@ -252,7 +225,7 @@
                     <i data-lucide="loader-2" class="w-7 h-7 animate-spin"></i>
                 </div>
                 <h3 class="font-display text-xl font-bold uppercase text-aco">Carregando base de clientes...</h3>
-                <p class="text-sm text-aco/65 mt-1">Sincronizando registros da aba CLIENTES do Google Sheets.</p>
+                <p class="text-sm text-aco/65 mt-1">Sincronizando registros do Google Sheets.</p>
             </div>
 
             <!-- Estado de Erro -->
@@ -286,15 +259,23 @@
                     onclick="limparBusca()" 
                     class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-petroleo text-white text-xs font-bold hover:bg-petroleoHover transition-colors"
                 >
-                    <span>Limpar Filtros</span>
+                    <span>Limpar Pesquisa</span>
                 </button>
             </div>
 
             <!-- Tabela Responsiva (Desktop / Tablet) -->
             <div id="wrapper-tabela" class="hidden md:block overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse">
-                    <thead id="tabela-cabecalho" class="bg-aco text-creme text-xs font-display uppercase tracking-wider">
-                        <!-- Preenchido dinamicamente pelo JS -->
+                    <thead class="bg-aco text-creme text-xs font-display uppercase tracking-wider">
+                        <tr>
+                            <th class="py-3.5 px-4 w-16 text-center text-ambar">ID</th>
+                            <th class="py-3.5 px-4">Nome</th>
+                            <th class="py-3.5 px-4">Município</th>
+                            <th class="py-3.5 px-4 w-24 text-center">Estado</th>
+                            <th class="py-3.5 px-4">Grupo Familiar</th>
+                            <th class="py-3.5 px-4">Usuário</th>
+                            <th class="py-3.5 px-4 text-right">Ficha</th>
+                        </tr>
                     </thead>
                     <tbody id="tabela-corpo" class="divide-y divide-aco/10 text-sm text-aco">
                         <!-- Preenchido dinamicamente pelo JS -->
@@ -312,7 +293,7 @@
                 <span id="info-exibicao">Exibindo 0 de 0 clientes</span>
                 <span class="flex items-center gap-1.5">
                     <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5 text-trator"></i>
-                    Clique em qualquer cliente para ver a ficha completa
+                    Clique em qualquer linha para ver todos os dados da ficha cadastral
                 </span>
             </div>
         </div>
@@ -362,10 +343,10 @@
     </footer>
 
     <!-- ===================================================================== -->
-    <!-- MODAL DE DETALHES DO CLIENTE                                          -->
+    <!-- MODAL DE FICHA CADASTRAL COMPLETA                                     -->
     <!-- ===================================================================== -->
     <div id="modal-detalhes" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4" onclick="fecharModalFora(event)">
-        <div class="bg-creme border-2 border-aco rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] flex flex-col">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] flex flex-col">
             
             <!-- Cabeçalho do Modal -->
             <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-4">
@@ -374,7 +355,7 @@
                         <i data-lucide="user-check" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-trator">Ficha Cadastral</span>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-trator">Ficha Cadastral Completa</span>
                         <h3 id="modal-titulo-cliente" class="font-display text-xl sm:text-2xl font-bold uppercase text-aco leading-tight">
                             Detalhes do Cliente
                         </h3>
@@ -385,9 +366,9 @@
                 </button>
             </div>
 
-            <!-- Conteúdo da Ficha -->
-            <div id="modal-conteudo-cliente" class="overflow-y-auto custom-scrollbar pr-1 space-y-3 flex-1">
-                <!-- Preenchido dinamicamente -->
+            <!-- Conteúdo da Ficha (Todos os dados do cliente) -->
+            <div id="modal-conteudo-cliente" class="overflow-y-auto custom-scrollbar pr-1 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                <!-- Preenchido dinamicamente com todos os campos -->
             </div>
 
             <!-- Rodapé do Modal -->
@@ -400,7 +381,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS E INTERATIVIDADE              -->
+    <!-- SCRIPTS DE INTEGRAÇÃO E MAPPEAMENTO INTELIGENTE DE COLUNAS           -->
     <!-- ===================================================================== -->
     <script>
         // Inicializa os ícones Lucide
@@ -417,14 +398,22 @@
         // =========================================================================
         const PUB_ID = '2PACX-1vR_7CNxgVfZftz_iZj1U-02akb6iVfQcR7p-7UzU1ajKJQ-ULt2BqnJQngv8__L6TohoLV8baQHtgHA';
         const NOME_ABA = 'CLIENTES';
-        // URL de exportação CSV direto da aba CLIENTES
         const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&single=true&sheet=${encodeURIComponent(NOME_ABA)}`;
 
-        let cabecalhos = [];
+        let cabecalhosOriginais = [];
         let todosClientes = [];
         let clientesFiltrados = [];
 
-        // Parser robusto de CSV (lida com vírgulas e quebras de linha dentro de aspas)
+        // Mapeia chaves flexíveis para encontrar Nome, Município, Estado, Grupo Familiar e Usuário
+        function encontrarChave(chaves, candidatos) {
+            for (const cand of candidatos) {
+                const encontrada = chaves.find(c => c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(cand));
+                if (encontrada) return encontrada;
+            }
+            return null;
+        }
+
+        // Parser robusto de CSV
         function parseCSV(textoCSV) {
             const linhas = [];
             let linhaAtual = [];
@@ -485,7 +474,6 @@
             erro.classList.add('hidden');
 
             try {
-                // Adiciona timestamp para evitar cache antigo do navegador
                 const urlSemCache = `${SHEET_CSV_URL}&t=${Date.now()}`;
                 const resposta = await fetch(urlSemCache);
 
@@ -495,30 +483,25 @@
 
                 const textoCSV = await resposta.text();
 
-                // Verifica se retornou HTML de erro ao invés de CSV
                 if (textoCSV.trim().startsWith('<!DOCTYPE html') || textoCSV.trim().startsWith('<html')) {
-                    throw new Error('A aba "CLIENTES" não pôde ser lida diretamente. Verifique se a planilha está publicada para toda a web.');
+                    throw new Error('A aba "CLIENTES" não pôde ser lida. Verifique se a planilha está publicada para toda a web.');
                 }
 
                 const matriz = parseCSV(textoCSV);
-
                 if (matriz.length < 1) {
                     throw new Error('A aba "CLIENTES" está vazia.');
                 }
 
-                // Primeira linha como cabeçalho (preenche nomes vazios como Coluna X)
-                cabecalhos = matriz[0].map((col, idx) => col || `Coluna ${idx + 1}`);
+                cabecalhosOriginais = matriz[0].map((col, idx) => col || `Coluna ${idx + 1}`);
 
-                // Demais linhas como registros de clientes
                 todosClientes = matriz.slice(1).map((linha, index) => {
                     const obj = { _id: index + 1 };
-                    cabecalhos.forEach((col, i) => {
+                    cabecalhosOriginais.forEach((col, i) => {
                         obj[col] = linha[i] || '';
                     });
                     return obj;
                 });
 
-                popularSelectColunas();
                 filtrarClientes();
 
                 const agora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -543,28 +526,9 @@
             }
         }
 
-        // Preenche o dropdown de filtro por coluna
-        function popularSelectColunas() {
-            const select = document.getElementById('filtro-coluna');
-            const valorAtual = select.value;
-            select.innerHTML = '<option value="todas">Todas as colunas</option>';
-
-            cabecalhos.forEach(col => {
-                const opt = document.createElement('option');
-                opt.value = col;
-                opt.textContent = `Filtrar por: ${col}`;
-                select.appendChild(opt);
-            });
-
-            if (cabecalhos.includes(valorAtual)) {
-                select.value = valorAtual;
-            }
-        }
-
-        // Filtra os clientes conforme texto digitado
+        // Filtra os clientes
         function filtrarClientes() {
             const termo = document.getElementById('campo-busca').value.toLowerCase().trim();
-            const colunaFiltro = document.getElementById('filtro-coluna').value;
             const btnLimpar = document.getElementById('btn-limpar-busca');
 
             if (termo) {
@@ -577,25 +541,31 @@
                 clientesFiltrados = [...todosClientes];
             } else {
                 clientesFiltrados = todosClientes.filter(cliente => {
-                    if (colunaFiltro !== 'todas') {
-                        return String(cliente[colunaFiltro] || '').toLowerCase().includes(termo);
-                    }
-                    return cabecalhos.some(col => String(cliente[col] || '').toLowerCase().includes(termo));
+                    return cabecalhosOriginais.some(col => String(cliente[col] || '').toLowerCase().includes(termo));
                 });
             }
 
-            renderizarLista();
+            renderizarTabela();
         }
 
         function limparBusca() {
             document.getElementById('campo-busca').value = '';
-            document.getElementById('filtro-coluna').value = 'todas';
             filtrarClientes();
         }
 
-        // Renderiza Tabela (Desktop) e Cards (Mobile)
-        function renderizarLista() {
-            const thead = document.getElementById('tabela-cabecalho');
+        // Identifica as colunas correspondentes com base nos títulos da planilha
+        function obterColunasChave() {
+            return {
+                nome: encontrarChave(cabecalhosOriginais, ['nome', 'cliente', 'razao', 'empresa']) || cabecalhosOriginais[1] || cabecalhosOriginais[0],
+                municipio: encontrarChave(cabecalhosOriginais, ['municipio', 'cidade', 'localidade']) || '',
+                estado: encontrarChave(cabecalhosOriginais, ['estado', 'uf']) || '',
+                grupoFamiliar: encontrarChave(cabecalhosOriginais, ['grupo familiar', 'familia', 'grupo']) || '',
+                usuario: encontrarChave(cabecalhosOriginais, ['usuario', 'responsavel', 'atendente', 'consultor']) || ''
+            };
+        }
+
+        // Renderiza a Tabela e os Cards Mobile
+        function renderizarTabela() {
             const tbody = document.getElementById('tabela-corpo');
             const listaMobile = document.getElementById('lista-mobile');
             const wrapperTabela = document.getElementById('wrapper-tabela');
@@ -618,36 +588,31 @@
             listaMobile.classList.remove('hidden');
             rodapeTabela.classList.remove('hidden');
 
-            // 1. Cabeçalho da Tabela Desktop
-            let htmlHead = '<tr>';
-            htmlHead += '<th class="py-3.5 px-4 w-12 text-center text-ambar">#</th>';
-            cabecalhos.forEach(col => {
-                htmlHead += `<th class="py-3.5 px-4 whitespace-nowrap">${escapeHTML(col)}</th>`;
-            });
-            htmlHead += '<th class="py-3.5 px-4 text-right">Ficha</th>';
-            htmlHead += '</tr>';
-            thead.innerHTML = htmlHead;
+            const col = obterColunasChave();
 
-            // 2. Corpo da Tabela Desktop
+            // 1. Tabela Desktop
             let htmlBody = '';
             clientesFiltrados.forEach((cliente, idx) => {
+                const idFormatado = String(cliente._id).padStart(2, '0');
+                const nomeVal = col.nome ? cliente[col.nome] : '—';
+                const munVal = col.municipio ? cliente[col.municipio] : '—';
+                const estVal = col.estado ? cliente[col.estado] : '—';
+                const grupoVal = col.grupoFamiliar ? cliente[col.grupoFamiliar] : '—';
+                const userVal = col.usuario ? cliente[col.usuario] : '—';
+
                 htmlBody += `
                     <tr onclick="abrirDetalhesCliente(${idx})" class="hover:bg-creme/80 cursor-pointer transition-colors group">
                         <td class="py-3.5 px-4 text-center font-display font-bold text-aco/40 group-hover:text-trator">
-                            ${String(cliente._id).padStart(2, '0')}
+                            ${idFormatado}
                         </td>
-                `;
-
-                cabecalhos.forEach((col, colIdx) => {
-                    const valor = cliente[col] || '—';
-                    const classeDestaque = colIdx === 0 ? 'font-bold text-petroleo group-hover:text-trator' : 'text-aco/85';
-                    htmlBody += `<td class="py-3.5 px-4 ${classeDestaque} max-w-xs truncate" title="${escapeHTML(valor)}">${escapeHTML(valor)}</td>`;
-                });
-
-                htmlBody += `
+                        <td class="py-3.5 px-4 font-bold text-petroleo group-hover:text-trator">${escapeHTML(nomeVal || '—')}</td>
+                        <td class="py-3.5 px-4 text-aco/85">${escapeHTML(munVal || '—')}</td>
+                        <td class="py-3.5 px-4 text-center font-semibold text-aco">${escapeHTML(estVal || '—')}</td>
+                        <td class="py-3.5 px-4 text-aco/85">${escapeHTML(grupoVal || '—')}</td>
+                        <td class="py-3.5 px-4 text-aco/85">${escapeHTML(userVal || '—')}</td>
                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-petroleo/10 text-petroleo group-hover:bg-petroleo group-hover:text-white text-xs font-bold transition-colors">
-                                Ver <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                                Ficha <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                             </span>
                         </td>
                     </tr>
@@ -655,30 +620,30 @@
             });
             tbody.innerHTML = htmlBody;
 
-            // 3. Cards para Mobile
+            // 2. Cards Mobile
             let htmlMobile = '';
             clientesFiltrados.forEach((cliente, idx) => {
-                const tituloPrincipal = cliente[cabecalhos[0]] || `Cliente #${cliente._id}`;
-                const camposSecundarios = cabecalhos.slice(1, 4);
+                const nomeVal = col.nome ? cliente[col.nome] : `Cliente #${cliente._id}`;
+                const munVal = col.municipio ? cliente[col.municipio] : '—';
+                const estVal = col.estado ? cliente[col.estado] : '—';
+                const grupoVal = col.grupoFamiliar ? cliente[col.grupoFamiliar] : '—';
+                const userVal = col.usuario ? cliente[col.usuario] : '—';
 
                 htmlMobile += `
                     <div onclick="abrirDetalhesCliente(${idx})" class="p-4 hover:bg-creme/60 active:bg-creme cursor-pointer transition-colors">
                         <div class="flex items-start justify-between gap-3 mb-2">
                             <div>
-                                <span class="text-[11px] font-display font-bold text-trator uppercase">Registro #${String(cliente._id).padStart(2, '0')}</span>
-                                <h4 class="font-bold text-base text-petroleo leading-snug">${escapeHTML(tituloPrincipal)}</h4>
+                                <span class="text-[11px] font-display font-bold text-trator uppercase">ID #${String(cliente._id).padStart(2, '0')}</span>
+                                <h4 class="font-bold text-base text-petroleo leading-snug">${escapeHTML(nomeVal)}</h4>
                             </div>
                             <span class="w-8 h-8 rounded-lg bg-petroleo/10 text-petroleo flex items-center justify-center flex-shrink-0">
                                 <i data-lucide="chevron-right" class="w-4 h-4"></i>
                             </span>
                         </div>
-                        <div class="space-y-1 text-xs text-aco/75">
-                            ${camposSecundarios.map(col => `
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="font-semibold text-aco/60">${escapeHTML(col)}:</span>
-                                    <span class="truncate font-medium text-aco">${escapeHTML(cliente[col] || '—')}</span>
-                                </div>
-                            `).join('')}
+                        <div class="grid grid-cols-2 gap-1 text-xs text-aco/75 mt-2">
+                            <div><span class="font-semibold text-aco/60">Município:</span> ${escapeHTML(munVal)} (${escapeHTML(estVal)})</div>
+                            <div><span class="font-semibold text-aco/60">Usuário:</span> ${escapeHTML(userVal)}</div>
+                            <div class="col-span-2"><span class="font-semibold text-aco/60">Grupo Familiar:</span> ${escapeHTML(grupoVal)}</div>
                         </div>
                     </div>
                 `;
@@ -688,21 +653,22 @@
             lucide.createIcons();
         }
 
-        // Abre o Modal com todos os campos do cliente selecionado
+        // Abre o Modal com TODOS os dados do cliente
         function abrirDetalhesCliente(indiceFiltrado) {
             const cliente = clientesFiltrados[indiceFiltrado];
             if (!cliente) return;
 
-            const titulo = cliente[cabecalhos[0]] || `Cliente #${cliente._id}`;
+            const col = obterColunasChave();
+            const titulo = col.nome ? cliente[col.nome] : `Cliente #${cliente._id}`;
             document.getElementById('modal-titulo-cliente').textContent = titulo;
 
             const container = document.getElementById('modal-conteudo-cliente');
-            container.innerHTML = cabecalhos.map(col => {
-                const valor = cliente[col] || 'Não informado';
+            container.innerHTML = cabecalhosOriginais.map(cabecalho => {
+                const valor = cliente[cabecalho] || 'Não informado';
                 return `
                     <div class="bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm">
-                        <span class="block text-[11px] font-bold uppercase tracking-wider text-petroleo/80 mb-0.5">${escapeHTML(col)}</span>
-                        <span class="text-sm sm:text-base font-medium text-aco break-words">${escapeHTML(valor)}</span>
+                        <span class="block text-[11px] font-bold uppercase tracking-wider text-petroleo/80 mb-0.5">${escapeHTML(cabecalho)}</span>
+                        <span class="text-sm font-medium text-aco break-words">${escapeHTML(valor)}</span>
                     </div>
                 `;
             }).join('');
@@ -724,7 +690,6 @@
             }
         }
 
-        // Proteção contra XSS ao renderizar textos da planilha
         function escapeHTML(str) {
             return String(str)
                 .replace(/&/g, '&amp;')
@@ -734,7 +699,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // Carrega os dados automaticamente ao abrir a página
         window.addEventListener('DOMContentLoaded', carregarPlanilha);
     </script>
 </body>
