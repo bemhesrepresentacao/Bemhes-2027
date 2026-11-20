@@ -264,7 +264,7 @@
         <!-- Nota informativa discreta -->
         <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
-            <span>Dica: Ao adicionar um novo cliente, a coluna <strong>ID</strong> é gerada automaticamente no padrão <strong>MCB-[Iniciais do Nome]</strong>. Clique sobre o <strong>Nome</strong> de qualquer cliente para consultar sua ficha completa.</span>
+            <span>Dica: Ao adicionar um novo cliente, a coluna <strong>ID</strong> é gerada automaticamente no padrão <strong>MCB-[Iniciais do Nome]</strong> e o <strong>ESTADO</strong> é preenchido conforme a <strong>CIDADE</strong> selecionada da aba <strong>MUNICIPIO</strong>.</span>
         </p>
 
     </main>
@@ -453,7 +453,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS, MÁSCARAS & CRUD              -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS, MUNICIPIO, MÁSCARAS & CRUD   -->
     <!-- ===================================================================== -->
     <script>
         // Inicializa ícones Lucide e datas
@@ -466,15 +466,17 @@
         // Configurações da Planilha Google
         const PUB_ID = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
         const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pubhtml`;
-        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v3';
-        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v3';
+        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v4';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v4';
+        const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v4';
 
         // Estado global da aplicação
         let listaClientes = [];
         let colunasPlanilha = [];
+        let listaMunicipios = []; // Array de { municipio: string, estado: string }
         let indiceParaExcluir = -1;
 
-        // Colunas padrão obrigatórias (incluindo ID e campos formatados)
+        // Colunas padrão obrigatórias
         const COLUNAS_PADRAO = [
             'ID',
             'CODIGO DO CLIENTE',
@@ -502,7 +504,7 @@
             'COMERCIALIZAÇÃO'
         ];
 
-        // Normaliza texto para comparação de cabeçalhos (remove acentos e espaços extras)
+        // Normaliza texto para comparação de cabeçalhos ou nomes
         function normalizarTexto(str) {
             return (str || '')
                 .toString()
@@ -538,13 +540,10 @@
             return (valor || '').toString().replace(/\D/g, '');
         }
 
-        // Converte data entre DD/MM/AAAA e AAAA-MM-DD para input type="date"
         function paraInputDate(valor) {
             if (!valor) return '';
             const str = valor.toString().trim();
-            // Já está em AAAA-MM-DD
             if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-            // Está em DD/MM/AAAA
             const matchBR = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
             if (matchBR) {
                 return `${matchBR[3]}-${matchBR[2]}-${matchBR[1]}`;
@@ -552,7 +551,6 @@
             return '';
         }
 
-        // Formata AAAA-MM-DD para DD/MM/AAAA
         function paraDataBR(valor) {
             if (!valor) return '';
             const str = valor.toString().trim();
@@ -563,7 +561,6 @@
             return str;
         }
 
-        // Telefone fixo: (00) 0000-0000
         function formatarFoneFixo(valor) {
             const d = apenasDigitos(valor).slice(0, 10);
             if (d.length === 0) return '';
@@ -572,7 +569,6 @@
             return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
         }
 
-        // Celular: (00) 00000-0000
         function formatarCelular(valor) {
             const d = apenasDigitos(valor).slice(0, 11);
             if (d.length === 0) return '';
@@ -581,7 +577,6 @@
             return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
         }
 
-        // CEP: 00000-000
         function formatarCEP(valor) {
             const d = apenasDigitos(valor).slice(0, 8);
             if (d.length === 0) return '';
@@ -589,7 +584,6 @@
             return `${d.slice(0, 5)}-${d.slice(5)}`;
         }
 
-        // CPF: 000.000.000-00
         function formatarCPF(valor) {
             const d = apenasDigitos(valor).slice(0, 11);
             if (d.length === 0) return '';
@@ -599,7 +593,6 @@
             return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
         }
 
-        // CNPJ: 00.000.000/0000-00
         function formatarCNPJ(valor) {
             const d = apenasDigitos(valor).slice(0, 14);
             if (d.length === 0) return '';
@@ -610,7 +603,6 @@
             return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
         }
 
-        // Normaliza valor de seleção para "SIM" ou "NAO" / ""
         function normalizarSelecao(valor) {
             const v = normalizarTexto(valor);
             if (v === 'SIM' || v === 'S' || v === 'TRUE' || v === '1' || v === 'X') return 'SIM';
@@ -618,33 +610,19 @@
             return '';
         }
 
-        // Formata o valor de acordo com o tipo da coluna para exibição ou salvamento
         function aplicarFormatacaoPorColuna(coluna, valor) {
             if (valor === null || valor === undefined) return '';
             const colNorm = normalizarTexto(coluna);
             const str = valor.toString().trim();
 
-            if (colNorm === 'DATA DE NASCIMENTO') {
-                return paraDataBR(str);
-            }
-            if (colNorm === 'FONE FIXO') {
-                return formatarFoneFixo(str);
-            }
-            if (colNorm === 'FONE CELULAR1' || colNorm === 'FONE CELULAR 1' || colNorm === 'FONE CELULAR2' || colNorm === 'FONE CELULAR 2') {
-                return formatarCelular(str);
-            }
-            if (colNorm === 'CEP') {
-                return formatarCEP(str);
-            }
-            if (colNorm === 'CNPJ') {
-                return formatarCNPJ(str);
-            }
-            if (colNorm === 'CPF') {
-                return formatarCPF(str);
-            }
-            if (colNorm === 'EMAIL' || colNorm === 'E-MAIL') {
-                return str.toLowerCase();
-            }
+            if (colNorm === 'DATA DE NASCIMENTO') return paraDataBR(str);
+            if (colNorm === 'FONE FIXO') return formatarFoneFixo(str);
+            if (colNorm === 'FONE CELULAR1' || colNorm === 'FONE CELULAR 1' || colNorm === 'FONE CELULAR2' || colNorm === 'FONE CELULAR 2') return formatarCelular(str);
+            if (colNorm === 'CEP') return formatarCEP(str);
+            if (colNorm === 'CNPJ') return formatarCNPJ(str);
+            if (colNorm === 'CPF') return formatarCPF(str);
+            if (colNorm === 'EMAIL' || colNorm === 'E-MAIL') return str.toLowerCase();
+            if (colNorm === 'ESTADO' || colNorm === 'UF') return str.toUpperCase();
             if (COLUNAS_SELECAO.some(s => normalizarTexto(s) === colNorm)) {
                 const sel = normalizarSelecao(str);
                 return sel === 'NAO' ? 'NÃO' : sel;
@@ -652,7 +630,6 @@
             return str;
         }
 
-        // Aplica máscara em tempo real enquanto o usuário digita no formulário
         function aplicarMascaraTempoReal(input, colNorm) {
             if (colNorm === 'FONE FIXO') {
                 input.value = formatarFoneFixo(input.value);
@@ -669,7 +646,6 @@
             }
         }
 
-        // Encontra a chave exata no objeto do cliente correspondente a uma coluna desejada
         function obterValorCampo(cliente, nomeColunaAlvo) {
             const alvoNorm = normalizarTexto(nomeColunaAlvo);
             for (const chave of Object.keys(cliente)) {
@@ -680,7 +656,6 @@
             return '';
         }
 
-        // Atualiza o indicador de status da planilha
         function atualizarStatus(texto, tipo = 'ok') {
             const el = document.getElementById('status-planilha');
             if (tipo === 'loading') {
@@ -692,44 +667,121 @@
             }
         }
 
-        // Descobre o GID da aba "clientes" e baixa os dados em CSV
+        // =====================================================================
+        // INTEGRAÇÃO COM A PLANILHA GOOGLE (ABAS "clientes" E "MUNICIPIO")
+        // =====================================================================
+        async function descobrirGidsAbas(htmlText) {
+            let gidClientes = '0';
+            let gidMunicipio = null;
+
+            const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
+            let match;
+            while ((match = regexAba.exec(htmlText)) !== null) {
+                const nomeAba = normalizarTexto(match[1]);
+                if (nomeAba === 'CLIENTES') gidClientes = match[2];
+                if (nomeAba === 'MUNICIPIO' || nomeAba === 'MUNICIPIOS') gidMunicipio = match[2];
+            }
+
+            if (!gidMunicipio || gidClientes === '0') {
+                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                const elementos = doc.querySelectorAll('a, li, button, span');
+                elementos.forEach(el => {
+                    const textoAba = normalizarTexto(el.textContent);
+                    if (textoAba === 'CLIENTES' || textoAba === 'MUNICIPIO' || textoAba === 'MUNICIPIOS') {
+                        const href = el.getAttribute('href') || '';
+                        const idAttr = el.id || '';
+                        const mHref = href.match(/gid=(\d+)/);
+                        const mId = idAttr.match(/(\d+)/);
+                        const gidEncontrado = mHref ? mHref[1] : (mId ? mId[1] : null);
+                        if (gidEncontrado) {
+                            if (textoAba === 'CLIENTES') gidClientes = gidEncontrado;
+                            if (textoAba === 'MUNICIPIO' || textoAba === 'MUNICIPIOS') gidMunicipio = gidEncontrado;
+                        }
+                    }
+                });
+            }
+
+            return { gidClientes, gidMunicipio };
+        }
+
+        async function buscarMunicipiosPlanilha(gidMunicipio) {
+            if (!gidMunicipio) return;
+
+            try {
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${gidMunicipio}&single=true&output=csv`;
+                const resp = await fetch(csvUrl);
+                if (!resp.ok) return;
+                const csvText = await resp.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (parsed.data && parsed.data.length > 0) {
+                    const mapaUnico = new Map();
+
+                    parsed.data.forEach(row => {
+                        let nomeMun = '';
+                        let estadoUf = '';
+
+                        for (const chave of Object.keys(row)) {
+                            const cNorm = normalizarTexto(chave);
+                            if (cNorm === 'MUNICIPIO' || cNorm === 'CIDADE') {
+                                nomeMun = (row[chave] || '').toString().trim();
+                            } else if (cNorm === 'ESTADO' || cNorm === 'UF' || cNorm === 'SIGLA ESTADO') {
+                                estadoUf = (row[chave] || '').toString().trim().toUpperCase();
+                            }
+                        }
+
+                        if (nomeMun) {
+                            const chaveNorm = normalizarTexto(nomeMun);
+                            if (!mapaUnico.has(chaveNorm)) {
+                                mapaUnico.set(chaveNorm, {
+                                    municipio: nomeMun,
+                                    estado: estadoUf
+                                });
+                            }
+                        }
+                    });
+
+                    listaMunicipios = Array.from(mapaUnico.values()).sort((a, b) =>
+                        a.municipio.localeCompare(b.municipio, 'pt-BR')
+                    );
+
+                    try {
+                        localStorage.setItem(STORAGE_MUNICIPIOS_KEY, JSON.stringify(listaMunicipios));
+                    } catch (e) {}
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar aba MUNICIPIO:', e);
+            }
+        }
+
         async function buscarDadosPlanilhaGoogle() {
-            atualizarStatus('Conectando à aba "clientes" da planilha Google...', 'loading');
+            atualizarStatus('Conectando às abas "clientes" e "MUNICIPIO" da planilha Google...', 'loading');
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('tabela-wrapper').classList.add('hidden');
             document.getElementById('empty-box').classList.add('hidden');
 
             try {
                 let gidClientes = '0';
+                let gidMunicipio = null;
+
                 try {
                     const respHtml = await fetch(PUBHTML_URL);
                     const htmlText = await respHtml.text();
-                    
-                    const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
-                    let match;
-                    while ((match = regexAba.exec(htmlText)) !== null) {
-                        if (normalizarTexto(match[1]) === 'CLIENTES') {
-                            gidClientes = match[2];
-                            break;
-                        }
-                    }
-
-                    if (gidClientes === '0') {
-                        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-                        const linksAbas = doc.querySelectorAll('a, li');
-                        linksAbas.forEach(el => {
-                            if (normalizarTexto(el.textContent) === 'CLIENTES') {
-                                const href = el.getAttribute('href') || '';
-                                const idAttr = el.id || '';
-                                const mHref = href.match(/gid=(\d+)/);
-                                const mId = idAttr.match(/(\d+)/);
-                                if (mHref) gidClientes = mHref[1];
-                                else if (mId) gidClientes = mId[1];
-                            }
-                        });
-                    }
+                    const gids = await descobrirGidsAbas(htmlText);
+                    gidClientes = gids.gidClientes;
+                    gidMunicipio = gids.gidMunicipio;
                 } catch (e) {
-                    console.warn('Não foi possível ler o pubhtml diretamente para extrair GID, tentando CSV direto:', e);
+                    console.warn('Não foi possível ler o pubhtml diretamente:', e);
+                }
+
+                // Busca municípios da aba MUNICIPIO em paralelo ou sequência
+                if (gidMunicipio) {
+                    await buscarMunicipiosPlanilha(gidMunicipio);
                 }
 
                 const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${gidClientes}&single=true&output=csv`;
@@ -761,8 +813,24 @@
                         return Object.values(row).some(val => val && val.toString().trim() !== '');
                     });
 
+                    // Caso a aba MUNICIPIO não tenha sido encontrada via GID, extrai cidades/estados existentes como apoio
+                    if (listaMunicipios.length === 0) {
+                        const mapaFallback = new Map();
+                        listaClientes.forEach(c => {
+                            const cid = obterValorCampo(c, 'CIDADE').toString().trim();
+                            const est = obterValorCampo(c, 'ESTADO').toString().trim().toUpperCase();
+                            if (cid) {
+                                const k = normalizarTexto(cid);
+                                if (!mapaFallback.has(k)) mapaFallback.set(k, { municipio: cid, estado: est });
+                            }
+                        });
+                        listaMunicipios = Array.from(mapaFallback.values()).sort((a, b) =>
+                            a.municipio.localeCompare(b.municipio, 'pt-BR')
+                        );
+                    }
+
                     salvarNoStorage();
-                    atualizarStatus(`Sincronizado com a planilha Google (Aba "clientes" • ${listaClientes.length} registros)`, 'ok');
+                    atualizarStatus(`Sincronizado com a planilha Google (${listaClientes.length} clientes • ${listaMunicipios.length} municípios)`, 'ok');
                     renderizarTabela();
                 } else {
                     throw new Error('A aba "clientes" retornou vazia.');
@@ -779,10 +847,16 @@
             }
         }
 
-        // Inicializa dados
         async function inicializarSistema() {
             const dadosSalvos = localStorage.getItem(STORAGE_CLIENTES_KEY);
             const colsSalvas = localStorage.getItem(STORAGE_COLUNAS_KEY);
+            const munSalvos = localStorage.getItem(STORAGE_MUNICIPIOS_KEY);
+
+            if (munSalvos) {
+                try {
+                    listaMunicipios = JSON.parse(munSalvos);
+                } catch (e) {}
+            }
 
             if (dadosSalvos && colsSalvas) {
                 try {
@@ -796,7 +870,7 @@
                             colunasPlanilha.push(cp);
                         }
                     });
-                    atualizarStatus(`Dados carregados (${listaClientes.length} clientes na base)`, 'ok');
+                    atualizarStatus(`Dados carregados (${listaClientes.length} clientes • ${listaMunicipios.length} municípios)`, 'ok');
                     renderizarTabela();
                     return;
                 } catch (e) {
@@ -807,25 +881,26 @@
             await buscarDadosPlanilhaGoogle();
         }
 
-        // Força nova sincronização com o Google Sheets
         async function recarregarPlanilha() {
-            if (confirm('Deseja recarregar os dados originais da planilha Google? Isso atualizará a tabela com a versão mais recente da nuvem.')) {
+            if (confirm('Deseja recarregar os dados originais da planilha Google (abas "clientes" e "MUNICIPIO")?')) {
                 await buscarDadosPlanilhaGoogle();
-                mostrarToast('Dados sincronizados com a planilha Google!');
+                mostrarToast('Dados e municípios sincronizados com a planilha Google!');
             }
         }
 
-        // Salva estado atual no localStorage
         function salvarNoStorage() {
             try {
                 localStorage.setItem(STORAGE_CLIENTES_KEY, JSON.stringify(listaClientes));
                 localStorage.setItem(STORAGE_COLUNAS_KEY, JSON.stringify(colunasPlanilha));
+                localStorage.setItem(STORAGE_MUNICIPIOS_KEY, JSON.stringify(listaMunicipios));
             } catch (e) {
                 console.warn('Erro ao salvar no localStorage:', e);
             }
         }
 
-        // Renderiza a tabela com ID + as 5 colunas principais + ações
+        // =====================================================================
+        // RENDERIZAÇÃO DA TABELA
+        // =====================================================================
         function renderizarTabela(filtro = '') {
             const tbody = document.getElementById('tabela-clientes-body');
             const loadingBox = document.getElementById('loading-box');
@@ -1023,7 +1098,7 @@
 
             if (modo === 'novo') {
                 titulo.textContent = 'Adicionar Novo Cliente';
-                subtitulo.textContent = 'O ID (MCB-Iniciais) será gerado automaticamente ao digitar o nome';
+                subtitulo.textContent = 'ID automático (MCB-Iniciais) e ESTADO vinculado à CIDADE';
                 iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
                 iconBox.innerHTML = '<i data-lucide="user-plus" class="w-5 h-5"></i>';
             } else {
@@ -1039,12 +1114,13 @@
                 const colNorm = normalizarTexto(coluna);
                 const ehCampoId = (colNorm === 'ID');
                 const ehCampoNome = (colNorm === 'NOME');
+                const ehCampoCidade = (colNorm === 'CIDADE');
+                const ehCampoEstado = (colNorm === 'ESTADO' || colNorm === 'UF');
                 const ehDataNasc = (colNorm === 'DATA DE NASCIMENTO');
                 const ehEmail = (colNorm === 'EMAIL' || colNorm === 'E-MAIL');
                 const ehSelecao = COLUNAS_SELECAO.some(s => normalizarTexto(s) === colNorm);
 
                 const obrigatorio = (colNorm === 'CODIGO DO CLIENTE' || ehCampoNome || ehCampoId);
-                
                 let valorInicial = (modo === 'editar') ? (obterValorCampo(clienteAtual, coluna) || clienteAtual[coluna] || '') : '';
 
                 if (modo === 'novo' && colNorm === 'CODIGO DO CLIENTE') {
@@ -1060,9 +1136,62 @@
                     div.className = 'sm:col-span-2';
                 }
 
-                const fieldId = ehCampoId ? 'input-campo-id' : `campo-form-${idx}`;
+                const fieldId = ehCampoId
+                    ? 'input-campo-id'
+                    : (ehCampoCidade ? 'select-campo-cidade' : (ehCampoEstado ? 'input-campo-estado' : `campo-form-${idx}`));
 
-                // 1. Campo de SELEÇÃO (USO E CONSUMO PRÓPRIO, INDUSTRIALIZAÇÃO, COMERCIALIZAÇÃO)
+                // 1. Campo CIDADE: menu suspenso com a lista da coluna "municipio" da aba "MUNICIPIO"
+                if (ehCampoCidade) {
+                    const valorNorm = normalizarTexto(valorInicial);
+                    const existeNaLista = listaMunicipios.some(m => normalizarTexto(m.municipio) === valorNorm);
+
+                    let opcoesHtml = `<option value="">Selecione o município...</option>`;
+                    if (valorInicial && !existeNaLista) {
+                        opcoesHtml += `<option value="${escapeHTML(valorInicial)}" data-estado="" selected>${escapeHTML(valorInicial)}</option>`;
+                    }
+
+                    listaMunicipios.forEach(item => {
+                        const selecionado = (normalizarTexto(item.municipio) === valorNorm) ? 'selected' : '';
+                        opcoesHtml += `<option value="${escapeHTML(item.municipio)}" data-estado="${escapeHTML(item.estado)}" ${selecionado}>${escapeHTML(item.municipio)}${item.estado ? ` (${escapeHTML(item.estado)})` : ''}</option>`;
+                    });
+
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Aba MUNICIPIO)</span>
+                        </label>
+                        <select 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            onchange="sincronizarEstadoPorCidade(this)"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-semibold text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                            ${opcoesHtml}
+                        </select>
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 2. Campo ESTADO: preenchido e sincronizado automaticamente ao escolher a CIDADE
+                if (ehCampoEstado) {
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Correspondente)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial.toUpperCase())}"
+                            placeholder="UF automática"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/70 font-bold uppercase text-petroleo border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 3. Campos de SELEÇÃO (USO E CONSUMO PRÓPRIO, INDUSTRIALIZAÇÃO, COMERCIALIZAÇÃO)
                 if (ehSelecao) {
                     const selAtual = normalizarSelecao(valorInicial);
                     div.innerHTML = `
@@ -1083,7 +1212,7 @@
                     return;
                 }
 
-                // 2. Campo de DATA DE NASCIMENTO (formato de data)
+                // 4. Campo DATA DE NASCIMENTO
                 if (ehDataNasc) {
                     const dataISO = paraInputDate(valorInicial);
                     div.innerHTML = `
@@ -1094,7 +1223,6 @@
                             type="date" 
                             id="${fieldId}"
                             data-coluna="${escapeHTML(coluna)}"
-                            data-tipo="data"
                             value="${escapeHTML(dataISO)}"
                             class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm text-aco focus:outline-none focus:border-trator transition-colors"
                         >
@@ -1103,7 +1231,7 @@
                     return;
                 }
 
-                // 3. Demais campos com formatação/máscara adequada
+                // 5. Demais campos com máscara adequada
                 let tipoInput = 'text';
                 let placeholder = `Digite ${escapeHTML(coluna.toLowerCase())}`;
                 let inputMode = '';
@@ -1164,12 +1292,37 @@
                 containerCampos.appendChild(div);
             });
 
+            // Se ao abrir o formulário já houver uma cidade selecionada e o estado estiver vazio, preenche automaticamente
+            const selectCidade = document.getElementById('select-campo-cidade');
+            const inputEstado = document.getElementById('input-campo-estado');
+            if (selectCidade && inputEstado && selectCidade.value && !inputEstado.value.trim()) {
+                sincronizarEstadoPorCidade(selectCidade);
+            }
+
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             lucide.createIcons();
         }
 
-        // Atualiza o campo ID em tempo real conforme o usuário digita o NOME do cliente
+        // Preenche o campo ESTADO correspondente ao município selecionado no menu suspenso
+        function sincronizarEstadoPorCidade(selectEl) {
+            const inputEstado = document.getElementById('input-campo-estado');
+            if (!inputEstado) return;
+
+            const optSelecionada = selectEl.options[selectEl.selectedIndex];
+            let estadoCorrespondente = optSelecionada ? (optSelecionada.getAttribute('data-estado') || '') : '';
+
+            if (!estadoCorrespondente && selectEl.value) {
+                const munNorm = normalizarTexto(selectEl.value);
+                const encontrado = listaMunicipios.find(m => normalizarTexto(m.municipio) === munNorm);
+                if (encontrado) estadoCorrespondente = encontrado.estado || '';
+            }
+
+            if (estadoCorrespondente) {
+                inputEstado.value = estadoCorrespondente.toUpperCase();
+            }
+        }
+
         function atualizarIdAutomaticoPorNome(nomeDigitado) {
             const inputId = document.getElementById('input-campo-id');
             if (inputId) {
@@ -1207,7 +1360,6 @@
                 registro[nomeColuna] = valorFormatado;
             });
 
-            // Garante que ao adicionar novo cliente a coluna ID siga exatamente "MCB-iniciais"
             if (modo === 'novo') {
                 const nomeCliente = obterValorCampo(registro, 'NOME');
                 const idGerado = gerarIdPadraoMCB(nomeCliente);
@@ -1296,7 +1448,6 @@
             }, 4000);
         }
 
-        // Fecha modais ao pressionar ESC
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 fecharModalDetalhes();
@@ -1305,7 +1456,6 @@
             }
         });
 
-        // Inicia o carregamento ao abrir a página
         window.addEventListener('DOMContentLoaded', inicializarSistema);
     </script>
 </body>
