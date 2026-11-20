@@ -171,7 +171,7 @@
                 <p class="text-sm text-aco/70 mt-1 flex items-center gap-2">
                     <span id="status-planilha" class="inline-flex items-center gap-1.5 font-medium text-petroleo">
                         <span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span>
-                        Sincronizando dados com a planilha Google...
+                        Sincronizando dados com as planilhas Google...
                     </span>
                 </p>
             </div>
@@ -182,7 +182,7 @@
                     type="button"
                     onclick="recarregarPlanilha()"
                     class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-sm font-semibold border border-aco/20 transition-all shadow-sm"
-                    title="Recarregar dados originais da planilha Google"
+                    title="Recarregar dados originais das planilhas Google"
                 >
                     <i data-lucide="refresh-cw" class="w-4 h-4 text-petroleo"></i>
                     <span>Sincronizar Planilha</span>
@@ -264,7 +264,7 @@
         <!-- Nota informativa discreta -->
         <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
-            <span>Dica: Ao adicionar um novo cliente, a coluna <strong>ID</strong> é gerada automaticamente no padrão <strong>MCB-[Iniciais do Nome]</strong> e o <strong>ESTADO</strong> é preenchido conforme a <strong>CIDADE</strong> selecionada da aba <strong>MUNICIPIO</strong>.</span>
+            <span>Dica: Ao adicionar/editar um cliente, o <strong>ESTADO</strong> é vinculado à <strong>CIDADE</strong> (aba <strong>MUNICIPIO</strong>) e o <strong>COD. DE IND.</strong> é vinculado à <strong>DESCRICAO CODIGO DE INDUSTRIA</strong> (aba <strong>Código de Industria</strong>).</span>
         </p>
 
     </main>
@@ -453,7 +453,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS, MUNICIPIO, MÁSCARAS & CRUD   -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS, MUNICIPIO, INDÚSTRIA & CRUD  -->
     <!-- ===================================================================== -->
     <script>
         // Inicializa ícones Lucide e datas
@@ -463,17 +463,25 @@
         const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
         document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
 
-        // Configurações da Planilha Google
-        const PUB_ID = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
-        const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pubhtml`;
-        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v4';
-        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v4';
-        const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v4';
+        // Planilha Principal (Abas "clientes" e "MUNICIPIO")
+        const PUB_ID_CLIENTES = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
+        const PUBHTML_CLIENTES_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_CLIENTES}/pubhtml`;
+
+        // Planilha Auxiliar (Aba "Código de Industria")
+        const PUB_ID_INDUSTRIA = '2PACX-1vQtpFruGZY0ryne5c70G5pCxJebqVT_B_4ClZjj03cuju-YrkS3P6iZmAxR6tQ4mYU3nigwkg5NXmIZ';
+        const PUBHTML_INDUSTRIA_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_INDUSTRIA}/pubhtml`;
+
+        // Chaves de Armazenamento Local
+        const STORAGE_CLIENTES_KEY = 'marcao_da_graxa_clientes_db_v5';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_clientes_cols_v5';
+        const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v5';
+        const STORAGE_INDUSTRIAS_KEY = 'marcao_da_graxa_industrias_v5';
 
         // Estado global da aplicação
         let listaClientes = [];
         let colunasPlanilha = [];
         let listaMunicipios = []; // Array de { municipio: string, estado: string }
+        let listaIndustrias = []; // Array de { descricao: string, codigo: string }
         let indiceParaExcluir = -1;
 
         // Colunas padrão obrigatórias
@@ -492,6 +500,8 @@
             'CEP',
             'CNPJ',
             'CPF',
+            'COD. DE IND.',
+            'DESCRICAO CODIGO DE INDUSTRIA',
             'USO E CONSUMO PRÓPRIO',
             'INDUSTRIALIZAÇÃO',
             'COMERCIALIZAÇÃO'
@@ -512,6 +522,24 @@
                 .replace(/[\u0300-\u036f]/g, '')
                 .trim()
                 .toUpperCase();
+        }
+
+        // Verifica se a coluna corresponde a "DESCRICAO CODIGO DE INDUSTRIA"
+        function ehColunaDescricaoIndustria(colNorm) {
+            return colNorm === 'DESCRICAO CODIGO DE INDUSTRIA' ||
+                   colNorm === 'DESCRICAO CODIGO INDUSTRIA' ||
+                   colNorm === 'DESCRICAO COD. DE INDUSTRIA' ||
+                   colNorm === 'DESCRICAO COD DE INDUSTRIA';
+        }
+
+        // Verifica se a coluna corresponde a "COD. DE IND."
+        function ehColunaCodigoIndustria(colNorm) {
+            return colNorm === 'COD. DE IND.' ||
+                   colNorm === 'COD DE IND' ||
+                   colNorm === 'COD. DE IND' ||
+                   colNorm === 'COD DE IND.' ||
+                   colNorm === 'CODIGO DE INDUSTRIA' ||
+                   colNorm === 'CODIGO INDUSTRIA';
         }
 
         // =====================================================================
@@ -668,47 +696,43 @@
         }
 
         // =====================================================================
-        // INTEGRAÇÃO COM A PLANILHA GOOGLE (ABAS "clientes" E "MUNICIPIO")
+        // DESCOBERTA DE GID NAS PLANILHAS GOOGLE
         // =====================================================================
-        async function descobrirGidsAbas(htmlText) {
-            let gidClientes = '0';
-            let gidMunicipio = null;
-
+        function extrairGidPorNomeAba(htmlText, nomesAlvoNormalizados, fallbackGid = null) {
             const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
             let match;
             while ((match = regexAba.exec(htmlText)) !== null) {
                 const nomeAba = normalizarTexto(match[1]);
-                if (nomeAba === 'CLIENTES') gidClientes = match[2];
-                if (nomeAba === 'MUNICIPIO' || nomeAba === 'MUNICIPIOS') gidMunicipio = match[2];
+                if (nomesAlvoNormalizados.includes(nomeAba)) {
+                    return match[2];
+                }
             }
 
-            if (!gidMunicipio || gidClientes === '0') {
-                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-                const elementos = doc.querySelectorAll('a, li, button, span');
-                elementos.forEach(el => {
-                    const textoAba = normalizarTexto(el.textContent);
-                    if (textoAba === 'CLIENTES' || textoAba === 'MUNICIPIO' || textoAba === 'MUNICIPIOS') {
-                        const href = el.getAttribute('href') || '';
-                        const idAttr = el.id || '';
-                        const mHref = href.match(/gid=(\d+)/);
-                        const mId = idAttr.match(/(\d+)/);
-                        const gidEncontrado = mHref ? mHref[1] : (mId ? mId[1] : null);
-                        if (gidEncontrado) {
-                            if (textoAba === 'CLIENTES') gidClientes = gidEncontrado;
-                            if (textoAba === 'MUNICIPIO' || textoAba === 'MUNICIPIOS') gidMunicipio = gidEncontrado;
-                        }
-                    }
-                });
+            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+            const elementos = doc.querySelectorAll('a, li, button, span');
+            for (const el of elementos) {
+                const textoAba = normalizarTexto(el.textContent);
+                if (nomesAlvoNormalizados.includes(textoAba)) {
+                    const href = el.getAttribute('href') || '';
+                    const idAttr = el.id || '';
+                    const mHref = href.match(/gid=(\d+)/);
+                    const mId = idAttr.match(/(\d+)/);
+                    if (mHref) return mHref[1];
+                    if (mId) return mId[1];
+                }
             }
 
-            return { gidClientes, gidMunicipio };
+            return fallbackGid;
         }
 
+        // =====================================================================
+        // CARREGAMENTO DA ABA "MUNICIPIO"
+        // =====================================================================
         async function buscarMunicipiosPlanilha(gidMunicipio) {
             if (!gidMunicipio) return;
 
             try {
-                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${gidMunicipio}&single=true&output=csv`;
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_CLIENTES}/pub?gid=${gidMunicipio}&single=true&output=csv`;
                 const resp = await fetch(csvUrl);
                 if (!resp.ok) return;
                 const csvText = await resp.text();
@@ -759,8 +783,87 @@
             }
         }
 
+        // =====================================================================
+        // CARREGAMENTO DA ABA "Código de Industria" (NOVA PLANILHA)
+        // Colunas: "DESCRIÇÃO" e "COD. DE IND."
+        // =====================================================================
+        async function buscarCodigosIndustriaPlanilha() {
+            try {
+                let gidIndustria = '0';
+                try {
+                    const respHtml = await fetch(PUBHTML_INDUSTRIA_URL);
+                    const htmlText = await respHtml.text();
+                    gidIndustria = extrairGidPorNomeAba(
+                        htmlText,
+                        ['CODIGO DE INDUSTRIA', 'CODIGO INDUSTRIA', 'CODIGOS DE INDUSTRIA'],
+                        '0'
+                    );
+                } catch (e) {
+                    console.warn('Não foi possível ler o pubhtml de Indústria diretamente, usando gid=0:', e);
+                }
+
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_INDUSTRIA}/pub?gid=${gidIndustria}&single=true&output=csv`;
+                const respCsv = await fetch(csvUrl);
+                if (!respCsv.ok) return;
+                const csvText = await respCsv.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (parsed.data && parsed.data.length > 0) {
+                    const mapaUnico = new Map();
+
+                    parsed.data.forEach(row => {
+                        let desc = '';
+                        let codInd = '';
+
+                        for (const chave of Object.keys(row)) {
+                            const cNorm = normalizarTexto(chave);
+                            if (cNorm === 'DESCRICAO' || cNorm === 'DESCRICAO CODIGO DE INDUSTRIA' || cNorm.includes('DESCRICAO')) {
+                                desc = (row[chave] || '').toString().trim();
+                            } else if (
+                                cNorm === 'COD. DE IND.' ||
+                                cNorm === 'COD DE IND' ||
+                                cNorm === 'COD. DE IND' ||
+                                cNorm === 'COD DE IND.' ||
+                                cNorm.includes('COD')
+                            ) {
+                                codInd = (row[chave] || '').toString().trim();
+                            }
+                        }
+
+                        if (desc) {
+                            const chaveNorm = normalizarTexto(desc);
+                            if (!mapaUnico.has(chaveNorm)) {
+                                mapaUnico.set(chaveNorm, {
+                                    descricao: desc,
+                                    codigo: codInd
+                                });
+                            }
+                        }
+                    });
+
+                    listaIndustrias = Array.from(mapaUnico.values()).sort((a, b) =>
+                        a.descricao.localeCompare(b.descricao, 'pt-BR')
+                    );
+
+                    try {
+                        localStorage.setItem(STORAGE_INDUSTRIAS_KEY, JSON.stringify(listaIndustrias));
+                    } catch (e) {}
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar aba Código de Industria:', e);
+            }
+        }
+
+        // =====================================================================
+        // SINCRONIZAÇÃO GERAL COM AS PLANILHAS GOOGLE
+        // =====================================================================
         async function buscarDadosPlanilhaGoogle() {
-            atualizarStatus('Conectando às abas "clientes" e "MUNICIPIO" da planilha Google...', 'loading');
+            atualizarStatus('Conectando às planilhas Google (clientes, MUNICIPIO e Código de Industria)...', 'loading');
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('tabela-wrapper').classList.add('hidden');
             document.getElementById('empty-box').classList.add('hidden');
@@ -770,23 +873,23 @@
                 let gidMunicipio = null;
 
                 try {
-                    const respHtml = await fetch(PUBHTML_URL);
+                    const respHtml = await fetch(PUBHTML_CLIENTES_URL);
                     const htmlText = await respHtml.text();
-                    const gids = await descobrirGidsAbas(htmlText);
-                    gidClientes = gids.gidClientes;
-                    gidMunicipio = gids.gidMunicipio;
+                    gidClientes = extrairGidPorNomeAba(htmlText, ['CLIENTES'], '0');
+                    gidMunicipio = extrairGidPorNomeAba(htmlText, ['MUNICIPIO', 'MUNICIPIOS'], null);
                 } catch (e) {
-                    console.warn('Não foi possível ler o pubhtml diretamente:', e);
+                    console.warn('Não foi possível ler o pubhtml principal diretamente:', e);
                 }
 
-                // Busca municípios da aba MUNICIPIO em paralelo ou sequência
-                if (gidMunicipio) {
-                    await buscarMunicipiosPlanilha(gidMunicipio);
-                }
+                // Busca municípios e códigos de indústria
+                await Promise.all([
+                    gidMunicipio ? buscarMunicipiosPlanilha(gidMunicipio) : Promise.resolve(),
+                    buscarCodigosIndustriaPlanilha()
+                ]);
 
-                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${gidClientes}&single=true&output=csv`;
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_CLIENTES}/pub?gid=${gidClientes}&single=true&output=csv`;
                 const respCsv = await fetch(csvUrl);
-                if (!respCsv.ok) throw new Error('Falha ao baixar CSV da planilha.');
+                if (!respCsv.ok) throw new Error('Falha ao baixar CSV da aba clientes.');
                 const csvText = await respCsv.text();
 
                 const resultado = Papa.parse(csvText, {
@@ -813,7 +916,7 @@
                         return Object.values(row).some(val => val && val.toString().trim() !== '');
                     });
 
-                    // Caso a aba MUNICIPIO não tenha sido encontrada via GID, extrai cidades/estados existentes como apoio
+                    // Fallback de municípios caso o GID da aba MUNICIPIO não tenha sido detectado
                     if (listaMunicipios.length === 0) {
                         const mapaFallback = new Map();
                         listaClientes.forEach(c => {
@@ -830,15 +933,18 @@
                     }
 
                     salvarNoStorage();
-                    atualizarStatus(`Sincronizado com a planilha Google (${listaClientes.length} clientes • ${listaMunicipios.length} municípios)`, 'ok');
+                    atualizarStatus(
+                        `Sincronizado (${listaClientes.length} clientes • ${listaMunicipios.length} municípios • ${listaIndustrias.length} cód. indústria)`,
+                        'ok'
+                    );
                     renderizarTabela();
                 } else {
                     throw new Error('A aba "clientes" retornou vazia.');
                 }
 
             } catch (erro) {
-                console.error('Erro ao carregar planilha:', erro);
-                atualizarStatus('Modo offline / local ativo (verifique se a planilha está publicada na web)', 'erro');
+                console.error('Erro ao carregar planilhas:', erro);
+                atualizarStatus('Modo offline / local ativo (verifique se as planilhas estão publicadas na web)', 'erro');
                 
                 if (colunasPlanilha.length === 0) {
                     colunasPlanilha = [...COLUNAS_PADRAO];
@@ -851,11 +957,13 @@
             const dadosSalvos = localStorage.getItem(STORAGE_CLIENTES_KEY);
             const colsSalvas = localStorage.getItem(STORAGE_COLUNAS_KEY);
             const munSalvos = localStorage.getItem(STORAGE_MUNICIPIOS_KEY);
+            const indSalvos = localStorage.getItem(STORAGE_INDUSTRIAS_KEY);
 
             if (munSalvos) {
-                try {
-                    listaMunicipios = JSON.parse(munSalvos);
-                } catch (e) {}
+                try { listaMunicipios = JSON.parse(munSalvos); } catch (e) {}
+            }
+            if (indSalvos) {
+                try { listaIndustrias = JSON.parse(indSalvos); } catch (e) {}
             }
 
             if (dadosSalvos && colsSalvas) {
@@ -870,11 +978,19 @@
                             colunasPlanilha.push(cp);
                         }
                     });
-                    atualizarStatus(`Dados carregados (${listaClientes.length} clientes • ${listaMunicipios.length} municípios)`, 'ok');
+                    // Se ainda não carregou a lista de indústrias, busca em segundo plano
+                    if (listaIndustrias.length === 0) {
+                        await buscarCodigosIndustriaPlanilha();
+                        salvarNoStorage();
+                    }
+                    atualizarStatus(
+                        `Dados carregados (${listaClientes.length} clientes • ${listaMunicipios.length} municípios • ${listaIndustrias.length} cód. indústria)`,
+                        'ok'
+                    );
                     renderizarTabela();
                     return;
                 } catch (e) {
-                    console.warn('Cache inválido, recarregando da planilha...');
+                    console.warn('Cache inválido, recarregando das planilhas...');
                 }
             }
 
@@ -882,9 +998,9 @@
         }
 
         async function recarregarPlanilha() {
-            if (confirm('Deseja recarregar os dados originais da planilha Google (abas "clientes" e "MUNICIPIO")?')) {
+            if (confirm('Deseja recarregar os dados originais das planilhas Google (abas "clientes", "MUNICIPIO" e "Código de Industria")?')) {
                 await buscarDadosPlanilhaGoogle();
-                mostrarToast('Dados e municípios sincronizados com a planilha Google!');
+                mostrarToast('Dados, municípios e códigos de indústria sincronizados!');
             }
         }
 
@@ -893,6 +1009,7 @@
                 localStorage.setItem(STORAGE_CLIENTES_KEY, JSON.stringify(listaClientes));
                 localStorage.setItem(STORAGE_COLUNAS_KEY, JSON.stringify(colunasPlanilha));
                 localStorage.setItem(STORAGE_MUNICIPIOS_KEY, JSON.stringify(listaMunicipios));
+                localStorage.setItem(STORAGE_INDUSTRIAS_KEY, JSON.stringify(listaIndustrias));
             } catch (e) {
                 console.warn('Erro ao salvar no localStorage:', e);
             }
@@ -1098,7 +1215,7 @@
 
             if (modo === 'novo') {
                 titulo.textContent = 'Adicionar Novo Cliente';
-                subtitulo.textContent = 'ID automático (MCB-Iniciais) e ESTADO vinculado à CIDADE';
+                subtitulo.textContent = 'ID, Estado e Cód. de Indústria preenchidos automaticamente';
                 iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
                 iconBox.innerHTML = '<i data-lucide="user-plus" class="w-5 h-5"></i>';
             } else {
@@ -1116,6 +1233,8 @@
                 const ehCampoNome = (colNorm === 'NOME');
                 const ehCampoCidade = (colNorm === 'CIDADE');
                 const ehCampoEstado = (colNorm === 'ESTADO' || colNorm === 'UF');
+                const ehDescIndustria = ehColunaDescricaoIndustria(colNorm);
+                const ehCodIndustria = ehColunaCodigoIndustria(colNorm);
                 const ehDataNasc = (colNorm === 'DATA DE NASCIMENTO');
                 const ehEmail = (colNorm === 'EMAIL' || colNorm === 'E-MAIL');
                 const ehSelecao = COLUNAS_SELECAO.some(s => normalizarTexto(s) === colNorm);
@@ -1132,13 +1251,16 @@
                 }
 
                 const div = document.createElement('div');
-                if (colNorm.includes('ENDERECO') || colNorm.includes('OBSERVA') || ehCampoNome) {
+                if (colNorm.includes('ENDERECO') || colNorm.includes('OBSERVA') || ehCampoNome || ehDescIndustria) {
                     div.className = 'sm:col-span-2';
                 }
 
-                const fieldId = ehCampoId
-                    ? 'input-campo-id'
-                    : (ehCampoCidade ? 'select-campo-cidade' : (ehCampoEstado ? 'input-campo-estado' : `campo-form-${idx}`));
+                let fieldId = `campo-form-${idx}`;
+                if (ehCampoId) fieldId = 'input-campo-id';
+                else if (ehCampoCidade) fieldId = 'select-campo-cidade';
+                else if (ehCampoEstado) fieldId = 'input-campo-estado';
+                else if (ehDescIndustria) fieldId = 'select-campo-desc-industria';
+                else if (ehCodIndustria) fieldId = 'input-campo-cod-industria';
 
                 // 1. Campo CIDADE: menu suspenso com a lista da coluna "municipio" da aba "MUNICIPIO"
                 if (ehCampoCidade) {
@@ -1172,7 +1294,7 @@
                     return;
                 }
 
-                // 2. Campo ESTADO: preenchido e sincronizado automaticamente ao escolher a CIDADE
+                // 2. Campo ESTADO: correspondente ao município escolhido
                 if (ehCampoEstado) {
                     div.innerHTML = `
                         <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
@@ -1191,7 +1313,58 @@
                     return;
                 }
 
-                // 3. Campos de SELEÇÃO (USO E CONSUMO PRÓPRIO, INDUSTRIALIZAÇÃO, COMERCIALIZAÇÃO)
+                // 3. Campo DESCRICAO CODIGO DE INDUSTRIA: menu suspenso com a coluna "DESCRIÇÃO" da aba "Código de Industria"
+                if (ehDescIndustria) {
+                    const valorNorm = normalizarTexto(valorInicial);
+                    const existeNaLista = listaIndustrias.some(i => normalizarTexto(i.descricao) === valorNorm);
+
+                    let opcoesHtml = `<option value="">Selecione a descrição do código de indústria...</option>`;
+                    if (valorInicial && !existeNaLista) {
+                        opcoesHtml += `<option value="${escapeHTML(valorInicial)}" data-codigo="" selected>${escapeHTML(valorInicial)}</option>`;
+                    }
+
+                    listaIndustrias.forEach(item => {
+                        const selecionado = (normalizarTexto(item.descricao) === valorNorm) ? 'selected' : '';
+                        opcoesHtml += `<option value="${escapeHTML(item.descricao)}" data-codigo="${escapeHTML(item.codigo)}" ${selecionado}>${escapeHTML(item.descricao)}${item.codigo ? ` — [Cód: ${escapeHTML(item.codigo)}]` : ''}</option>`;
+                    });
+
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Aba Código de Industria)</span>
+                        </label>
+                        <select 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            onchange="sincronizarCodigoIndustriaPorDescricao(this)"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-semibold text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                            ${opcoesHtml}
+                        </select>
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 4. Campo COD. DE IND.: correspondente à DESCRICAO CODIGO DE INDUSTRIA selecionada
+                if (ehCodIndustria) {
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Correspondente)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial)}"
+                            placeholder="Código automático"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/70 font-mono font-bold text-petroleo border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 5. Campos de SELEÇÃO (USO E CONSUMO PRÓPRIO, INDUSTRIALIZAÇÃO, COMERCIALIZAÇÃO)
                 if (ehSelecao) {
                     const selAtual = normalizarSelecao(valorInicial);
                     div.innerHTML = `
@@ -1212,7 +1385,7 @@
                     return;
                 }
 
-                // 4. Campo DATA DE NASCIMENTO
+                // 6. Campo DATA DE NASCIMENTO
                 if (ehDataNasc) {
                     const dataISO = paraInputDate(valorInicial);
                     div.innerHTML = `
@@ -1231,7 +1404,7 @@
                     return;
                 }
 
-                // 5. Demais campos com máscara adequada
+                // 7. Demais campos com máscara adequada
                 let tipoInput = 'text';
                 let placeholder = `Digite ${escapeHTML(coluna.toLowerCase())}`;
                 let inputMode = '';
@@ -1292,11 +1465,17 @@
                 containerCampos.appendChild(div);
             });
 
-            // Se ao abrir o formulário já houver uma cidade selecionada e o estado estiver vazio, preenche automaticamente
+            // Sincronizações automáticas ao abrir o formulário caso já exista valor selecionado
             const selectCidade = document.getElementById('select-campo-cidade');
             const inputEstado = document.getElementById('input-campo-estado');
             if (selectCidade && inputEstado && selectCidade.value && !inputEstado.value.trim()) {
                 sincronizarEstadoPorCidade(selectCidade);
+            }
+
+            const selectDescInd = document.getElementById('select-campo-desc-industria');
+            const inputCodInd = document.getElementById('input-campo-cod-industria');
+            if (selectDescInd && inputCodInd && selectDescInd.value && !inputCodInd.value.trim()) {
+                sincronizarCodigoIndustriaPorDescricao(selectDescInd);
             }
 
             modal.classList.remove('hidden');
@@ -1320,6 +1499,25 @@
 
             if (estadoCorrespondente) {
                 inputEstado.value = estadoCorrespondente.toUpperCase();
+            }
+        }
+
+        // Preenche o campo COD. DE IND. correspondente à DESCRICAO CODIGO DE INDUSTRIA selecionada
+        function sincronizarCodigoIndustriaPorDescricao(selectEl) {
+            const inputCodInd = document.getElementById('input-campo-cod-industria');
+            if (!inputCodInd) return;
+
+            const optSelecionada = selectEl.options[selectEl.selectedIndex];
+            let codigoCorrespondente = optSelecionada ? (optSelecionada.getAttribute('data-codigo') || '') : '';
+
+            if (!codigoCorrespondente && selectEl.value) {
+                const descNorm = normalizarTexto(selectEl.value);
+                const encontrado = listaIndustrias.find(i => normalizarTexto(i.descricao) === descNorm);
+                if (encontrado) codigoCorrespondente = encontrado.codigo || '';
+            }
+
+            if (codigoCorrespondente) {
+                inputCodInd.value = codigoCorrespondente;
             }
         }
 
