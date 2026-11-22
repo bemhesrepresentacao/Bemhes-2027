@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEMHES 2027 — Endereços de Cobrança de Clientes</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes Google: Oswald (Títulos Industriais) e Inter (Textos e Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PapaParse para leitura precisa de CSV da planilha publicada -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Configuração de Cores e Fontes Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
+                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
+                        trator: '#D9531E',       /* Laranja vibrante do trator */
+                        tratorHover: '#B84214',  /* Laranja escuro para hover */
+                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
+                        petroleoHover: '#153448',/* Azul escuro para hover */
+                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
+                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                    },
+                    fontFamily: {
+                        display: ['Oswald', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Padrão sutil de textura industrial no fundo creme */
+        body {
+            background-color: #F7F3EA;
+            background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #1C2226;
+        }
+
+        /* Estilo de borda chanfrada/robusta */
+        .card-industrial {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom-width: 6px;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ECE5D5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E4863;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D9531E;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
+
+    <!-- ===================================================================== -->
+    <!-- 1. CABEÇALHO (HEADER) - PRESERVADO ORIGINAL                           -->
+    <!-- ===================================================================== -->
+    <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
+        <!-- Faixa Institucional Superior -->
+        <div class="bg-petroleo/90 border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-ambar animate-pulse"></span>
+                    <span>BEMHES 2027 — Soluções em Lubrificação Industrial, Agrícola e Automotiva</span>
+                </div>
+                <div class="flex items-center gap-4 text-creme/80">
+                    <span id="data-atual" class="hidden md:inline"></span>
+                    <span class="px-2 py-0.5 rounded bg-aco/60 text-ambar font-semibold text-xs border border-ambar/30">
+                        Sistema Operacional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
+        <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
+                <div class="flex-shrink-0 flex justify-center">
+                    <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
+                        <!-- TAMANHO DA LOGO: ALTERE AQUI -->
+                        <img 
+                            src="MARCAO DA GRAXA.jpg" 
+                            alt="Logo Oficial Marcão da Graxa" 
+                            style="width: 100px; height: auto;"
+                            class="object-contain block rounded-xl"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/F7F3EA/1C2226?text=MARCÃO+DA+GRAXA.jpg';"
+                        >
+                    </div>
+                </div>
+
+                <!-- Título e Apresentação do Portal -->
+                <div class="text-center md:text-left flex-1 md:pl-6">
+                    <h4 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
+                        BEMHES <span class="text-trator">CLIENTE</span>
+                    </h4>
+                    <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>                   
+                </div>
+                
+                <nav>
+                    <a href="index.html"
+                       class="inline-flex items-center gap-2 rounded-lg
+                              bg-[#944b20] px-5 py-3 text-white font-semibold
+                              shadow-lg transition-all duration-300
+                              hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
+                       title="Voltar para a página inicial">
+
+                        <!-- Seta para a esquerda -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="24" height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2.5"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+
+                        <span>Voltar</span>
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. CORPO DA PÁGINA (CLIENTES ENDEREÇO COBRANÇA & GESTÃO CRUD)         -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <!-- Barra Superior de Título e Ações -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 border-b-2 border-aco/10 pb-5">
+            <div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold uppercase text-petroleo tracking-wide flex items-center gap-2.5">
+                    <span class="w-3 h-8 bg-trator rounded-sm inline-block"></span>
+                    Endereços de Cobrança — Clientes
+                </h2>
+                <p class="text-sm text-aco/70 mt-1 flex items-center gap-2">
+                    <span id="status-planilha" class="inline-flex items-center gap-1.5 font-medium text-petroleo">
+                        <span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span>
+                        Sincronizando dados com a aba "Clientes Endereço Cobrança"...
+                    </span>
+                </p>
+            </div>
+            
+            <!-- Botões Principais de Ação -->
+            <div class="flex flex-wrap items-center gap-3">
+                <button 
+                    type="button"
+                    onclick="recarregarPlanilha()"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-sm font-semibold border border-aco/20 transition-all shadow-sm"
+                    title="Recarregar dados originais das planilhas Google"
+                >
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-petroleo"></i>
+                    <span>Sincronizar Planilha</span>
+                </button>
+
+                <button 
+                    type="button"
+                    onclick="abrirModalFormulario('novo')"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-trator hover:bg-tratorHover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
+                >
+                    <i data-lucide="map-pin-plus" class="w-4 h-4"></i>
+                    <span>Novo Endereço de Cobrança</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Pesquisa e Contadores -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-aco/15 mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="w-5 h-5 text-aco/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="campo-busca" 
+                    oninput="filtrarRegistros()"
+                    placeholder="Buscar por ID, código do cliente, nome, logradouro, bairro, CEP, cidade ou estado..." 
+                    class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-creme/60 border border-aco/20 text-sm text-aco placeholder-aco/50 focus:outline-none focus:border-petroleo focus:bg-white transition-colors"
+                >
+            </div>
+
+            <div class="flex items-center justify-between md:justify-end gap-4 text-sm">
+                <div class="px-3.5 py-2 rounded-xl bg-petroleo/10 text-petroleo font-bold border border-petroleo/20">
+                    Total listado: <span id="contador-registros" class="text-trator">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container da Tabela de Endereços de Cobrança -->
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-aco/15 border-b-petroleo card-industrial overflow-hidden">
+            
+            <!-- Estado de Carregamento -->
+            <div id="loading-box" class="py-16 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-petroleo/10 text-petroleo mb-4">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Carregando aba "Clientes Endereço Cobrança"...</h3>
+                <p class="text-sm text-aco/60 mt-1">Buscando registros diretamente do Google Sheets.</p>
+            </div>
+
+            <!-- Tabela Responsiva -->
+            <div id="tabela-wrapper" class="hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-aco text-creme font-display uppercase text-sm tracking-wider border-b-2 border-trator">
+                            <th class="py-4 px-4 sm:px-5 whitespace-nowrap">ID / Cód.</th>
+                            <th class="py-4 px-4 sm:px-5">Cliente</th>
+                            <th class="py-4 px-4 sm:px-5">Endereço de Cobrança</th>
+                            <th class="py-4 px-4 sm:px-5">Bairro / CEP</th>
+                            <th class="py-4 px-4 sm:px-5">Cidade / UF</th>
+                            <th class="py-4 px-4 sm:px-5 text-right whitespace-nowrap">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-cobranca-body" class="divide-y divide-aco/10 text-sm">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado Vazio / Sem Resultados -->
+            <div id="empty-box" class="hidden py-14 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cremeEscuro text-aco/50 mb-3">
+                    <i data-lucide="map-pin-off" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Nenhum endereço encontrado</h3>
+                <p class="text-sm text-aco/60 mt-1">Tente ajustar os termos da busca ou cadastre um novo endereço de cobrança.</p>
+            </div>
+        </div>
+
+        <!-- Nota informativa discreta -->
+        <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
+            <span>Dica: Clique no nome do cliente para visualizar a ficha completa de cobrança (logradouro, número, complemento, bairro, CEP, município, UF e contatos). Ao cadastrar ou editar, o <strong>ESTADO</strong> é vinculado automaticamente à <strong>CIDADE</strong> (aba <strong>MUNICIPIO</strong>).</span>
+        </p>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. RODAPÉ (FOOTER) - PRESERVADO ORIGINAL                              -->
+    <!-- ===================================================================== -->
+    <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Identificação da Empresa -->
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
+                        <span class="font-display text-xl font-bold uppercase tracking-wider text-white">
+                            BEMHES 2027
+                        </span>
+                    </div>
+                    <p class="text-sm text-creme/75">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>
+                </div>
+
+                <!-- Contatos Institucionais -->
+                <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
+                        <span>Atendimento Técnico & Comercial</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-ambar"></i>
+                        <span>Qualidade Garantida</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha Inferior de Direitos Autorais -->
+            <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
+                <p>&copy; <span id="ano-atual">2026</span> BEMHES 2027. Todos os direitos reservados.</p>
+                <p>Portal Administrativo v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: FICHA COMPLETA DE ENDEREÇO DE COBRANÇA (AO CLICAR NO NOME)   -->
+    <!-- ===================================================================== -->
+    <div id="modal-detalhes" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-start justify-between border-b border-aco/15 pb-4 mb-5 gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-petroleo text-white flex items-center justify-center flex-shrink-0 shadow">
+                        <i data-lucide="map-pin" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span id="detalhe-id-badge" class="inline-block px-2.5 py-0.5 rounded bg-petroleo/15 text-petroleo font-mono font-bold text-xs uppercase tracking-wider">
+                                ID: ---
+                            </span>
+                            <span id="detalhe-codigo-badge" class="inline-block px-2.5 py-0.5 rounded bg-trator/15 text-trator font-bold text-xs uppercase tracking-wider">
+                                CÓD: ---
+                            </span>
+                        </div>
+                        <h3 id="detalhe-titulo-nome" class="font-display text-2xl font-bold uppercase text-aco leading-tight">
+                            Nome do Cliente
+                        </h3>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalDetalhes()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors" title="Fechar">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Corpo com Todos os Campos da Aba "Clientes Endereço Cobrança" -->
+            <div id="detalhes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Campos injetados dinamicamente -->
+            </div>
+
+            <!-- Rodapé do Modal de Consulta com Botões Rápidos de Editar / Excluir -->
+            <div class="mt-6 pt-4 border-t border-aco/15 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-detalhe-editar" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-petroleo hover:bg-petroleoHover text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                        <span>Editar Endereço</span>
+                    </button>
+                    <button type="button" id="btn-detalhe-excluir" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Excluir Registro</span>
+                    </button>
+                </div>
+
+                <button type="button" onclick="fecharModalDetalhes()" class="px-5 py-2 rounded-xl text-sm font-bold bg-aco text-creme hover:bg-black transition-colors">
+                    Fechar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: FORMULÁRIO PARA ADICIONAR OU EDITAR ENDEREÇO DE COBRANÇA     -->
+    <!-- ===================================================================== -->
+    <div id="modal-formulario" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div id="form-icon-box" class="w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="map-pin-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="form-titulo" class="font-display text-xl sm:text-2xl font-bold uppercase text-aco">Novo Endereço de Cobrança</h3>
+                        <p id="form-subtitulo" class="text-xs text-aco/70">Preencha os dados completos de endereço e cobrança</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalFormulario()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Formulário Dinâmico (Renderiza todas as colunas da aba) -->
+            <form id="form-cobranca" onsubmit="salvarRegistro(event)">
+                <input type="hidden" id="registro-index-edicao" value="-1">
+                <input type="hidden" id="registro-modo-edicao" value="novo">
+                
+                <div id="form-campos-dinamicos" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- Inputs e selects gerados dinamicamente conforme as colunas da aba -->
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
+                    <button type="button" onclick="fecharModalFormulario()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-trator hover:bg-tratorHover text-white shadow-md transition-colors flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Salvar Endereço</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: CONFIRMAÇÃO DE EXCLUSÃO                                      -->
+    <!-- ===================================================================== -->
+    <div id="modal-excluir" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
+        <div class="bg-creme border-2 border-red-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="font-display text-xl font-bold uppercase text-aco">Excluir Endereço</h3>
+                    <p class="text-xs text-aco/70">Esta ação removerá o endereço de cobrança da listagem</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-aco/85 mb-6 leading-relaxed">
+                Tem certeza que deseja excluir o endereço de cobrança de <strong id="excluir-nome-cliente" class="text-red-700">---</strong>?
+            </p>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" onclick="fecharModalExcluir()" class="px-4 py-2 rounded-xl text-sm font-semibold text-aco/80 hover:bg-aco/10 transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirmar-exclusao" class="px-5 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-md transition-colors flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TOAST DE NOTIFICAÇÃO                                                  -->
+    <!-- ===================================================================== -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 bg-aco text-white px-4 py-3 rounded-xl shadow-xl border-l-4 border-trator text-sm font-medium">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-ambar"></i>
+        <span id="toast-msg">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS (ABA ENDEREÇO COBRANÇA)       -->
+    <!-- ===================================================================== -->
+    <script>
+        // Inicializa ícones Lucide e datas
+        lucide.createIcons();
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
+        document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+        // Planilha Principal (Aba "Clientes Endereço Cobrança", "clientes" e "MUNICIPIO")
+        const PUB_ID_PLANILHA = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
+        const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pubhtml`;
+
+        // Chaves de Armazenamento Local
+        const STORAGE_COBRANCA_KEY = 'marcao_da_graxa_endereco_cobranca_db_v1';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_endereco_cobranca_cols_v1';
+        const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v5';
+        const STORAGE_CLIENTES_REF_KEY = 'marcao_da_graxa_clientes_ref_v1';
+
+        // Estado global da aplicação
+        let listaCobranca = [];
+        let colunasPlanilha = [];
+        let listaMunicipios = [];   // { municipio, estado }
+        let listaClientesRef = [];  // { id, codigo, nome } para preenchimento rápido opcional
+        let indiceParaExcluir = -1;
+
+        // Colunas padrão esperadas para Endereço de Cobrança (usadas como fallback caso a planilha esteja inacessível)
+        const COLUNAS_PADRAO = [
+            'ID',
+            'CODIGO DO CLIENTE',
+            'NOME',
+            'LOGRADOURO',
+            'NUMERO',
+            'COMPLEMENTO',
+            'BAIRRO',
+            'CEP',
+            'CIDADE',
+            'ESTADO',
+            'PONTO DE REFERENCIA',
+            'TELEFONE COBRANCA',
+            'EMAIL COBRANCA',
+            'CONTATO FINANCEIRO'
+        ];
+
+        // Normaliza texto para comparação de cabeçalhos ou valores
+        function normalizarTexto(str) {
+            return (str || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toUpperCase();
+        }
+
+        // Busca flexível de campo em um objeto de linha da planilha (suporta variações de nomes de colunas)
+        function obterValorPorAliases(registro, aliases) {
+            if (!registro) return '';
+            const chaves = Object.keys(registro);
+            for (const alias of aliases) {
+                const aliasNorm = normalizarTexto(alias);
+                for (const chave of chaves) {
+                    if (normalizarTexto(chave) === aliasNorm) {
+                        const val = registro[chave];
+                        if (val !== undefined && val !== null && val.toString().trim() !== '') {
+                            return val.toString().trim();
+                        }
+                    }
+                }
+            }
+            return '';
+        }
+
+        function obterValorCampo(registro, nomeColunaAlvo) {
+            const alvoNorm = normalizarTexto(nomeColunaAlvo);
+            for (const chave of Object.keys(registro)) {
+                if (normalizarTexto(chave) === alvoNorm) {
+                    return registro[chave] || '';
+                }
+            }
+            return '';
+        }
+
+        // =====================================================================
+        // REGRA DE GERAÇÃO DE ID: "MCB-" + INICIAIS DO NOME DO CLIENTE
+        // =====================================================================
+        function gerarIdPadraoMCB(nomeCompleto) {
+            const limpo = (nomeCompleto || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9\s]/g, ' ')
+                .trim()
+                .toUpperCase();
+
+            if (!limpo) return 'MCB-';
+
+            const palavras = limpo.split(/\s+/).filter(Boolean);
+            const iniciais = palavras.map(palavra => palavra.charAt(0)).join('');
+            return `MCB-${iniciais}`;
+        }
+
+        // =====================================================================
+        // FUNÇÕES DE FORMATAÇÃO E MÁSCARAS
+        // =====================================================================
+        function apenasDigitos(valor) {
+            return (valor || '').toString().replace(/\D/g, '');
+        }
+
+        function formatarTelefoneAuto(valor) {
+            const d = apenasDigitos(valor).slice(0, 11);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return `(${d}`;
+            if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+            if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+            return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+        }
+
+        function formatarCEP(valor) {
+            const d = apenasDigitos(valor).slice(0, 8);
+            if (d.length === 0) return '';
+            if (d.length <= 5) return d;
+            return `${d.slice(0, 5)}-${d.slice(5)}`;
+        }
+
+        function formatarCPF(valor) {
+            const d = apenasDigitos(valor).slice(0, 11);
+            if (d.length === 0) return '';
+            if (d.length <= 3) return d;
+            if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+            if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+            return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+        }
+
+        function formatarCNPJ(valor) {
+            const d = apenasDigitos(valor).slice(0, 14);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return d;
+            if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+            if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+            if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+            return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+        }
+
+        function aplicarFormatacaoPorColuna(coluna, valor) {
+            if (valor === null || valor === undefined) return '';
+            const colNorm = normalizarTexto(coluna);
+            const str = valor.toString().trim();
+
+            if (colNorm.includes('FONE') || colNorm.includes('TEL') || colNorm.includes('CELULAR')) {
+                return formatarTelefoneAuto(str);
+            }
+            if (colNorm.includes('CEP')) return formatarCEP(str);
+            if (colNorm === 'CNPJ') return formatarCNPJ(str);
+            if (colNorm === 'CPF') return formatarCPF(str);
+            if (colNorm.includes('EMAIL') || colNorm.includes('E-MAIL')) return str.toLowerCase();
+            if (colNorm === 'ESTADO' || colNorm === 'UF') return str.toUpperCase();
+            return str;
+        }
+
+        function aplicarMascaraTempoReal(input, colNorm) {
+            if (colNorm.includes('FONE') || colNorm.includes('TEL') || colNorm.includes('CELULAR')) {
+                input.value = formatarTelefoneAuto(input.value);
+            } else if (colNorm.includes('CEP')) {
+                input.value = formatarCEP(input.value);
+            } else if (colNorm === 'CPF') {
+                input.value = formatarCPF(input.value);
+            } else if (colNorm === 'CNPJ') {
+                input.value = formatarCNPJ(input.value);
+            } else if (colNorm.includes('EMAIL') || colNorm.includes('E-MAIL')) {
+                input.value = input.value.replace(/\s+/g, '').toLowerCase();
+            }
+        }
+
+        function atualizarStatus(texto, tipo = 'ok') {
+            const el = document.getElementById('status-planilha');
+            if (tipo === 'loading') {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span> <span>${texto}</span>`;
+            } else if (tipo === 'erro') {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> <span class="text-red-700">${texto}</span>`;
+            } else {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> <span class="text-aco/80">${texto}</span>`;
+            }
+        }
+
+        // =====================================================================
+        // DESCOBERTA DE GID DAS ABAS NA PLANILHA GOOGLE
+        // =====================================================================
+        function extrairTodosGids(htmlText) {
+            const abas = [];
+            const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
+            let match;
+            while ((match = regexAba.exec(htmlText)) !== null) {
+                abas.push({
+                    nome: match[1],
+                    nomeNorm: normalizarTexto(match[1]),
+                    gid: match[2]
+                });
+            }
+
+            if (abas.length === 0) {
+                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                const elementos = doc.querySelectorAll('a, li, button, span');
+                for (const el of elementos) {
+                    const texto = (el.textContent || '').trim();
+                    const href = el.getAttribute('href') || '';
+                    const idAttr = el.id || '';
+                    const mHref = href.match(/gid=(\d+)/);
+                    const mId = idAttr.match(/(\d+)/);
+                    const gidEncontrado = mHref ? mHref[1] : (mId ? mId[1] : null);
+                    if (texto && gidEncontrado) {
+                        abas.push({
+                            nome: texto,
+                            nomeNorm: normalizarTexto(texto),
+                            gid: gidEncontrado
+                        });
+                    }
+                }
+            }
+            return abas;
+        }
+
+        function encontrarGidAba(abas, nomesAlvoNormalizados, fallbackGid = null) {
+            // Busca correspondência exata primeiro
+            for (const alvo of nomesAlvoNormalizados) {
+                const exata = abas.find(a => a.nomeNorm === alvo);
+                if (exata) return exata.gid;
+            }
+            // Busca parcial caso haja variação de espaços/hífens
+            for (const alvo of nomesAlvoNormalizados) {
+                const parcial = abas.find(a => a.nomeNorm.includes(alvo));
+                if (parcial) return parcial.gid;
+            }
+            return fallbackGid;
+        }
+
+        // =====================================================================
+        // CARREGAMENTO DA ABA "MUNICIPIO"
+        // =====================================================================
+        async function buscarMunicipiosPlanilha(gidMunicipio) {
+            if (!gidMunicipio) return;
+            try {
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidMunicipio}&single=true&output=csv`;
+                const resp = await fetch(csvUrl);
+                if (!resp.ok) return;
+                const csvText = await resp.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (parsed.data && parsed.data.length > 0) {
+                    const mapaUnico = new Map();
+                    parsed.data.forEach(row => {
+                        let nomeMun = '';
+                        let estadoUf = '';
+                        for (const chave of Object.keys(row)) {
+                            const cNorm = normalizarTexto(chave);
+                            if (cNorm === 'MUNICIPIO' || cNorm === 'CIDADE') {
+                                nomeMun = (row[chave] || '').toString().trim();
+                            } else if (cNorm === 'ESTADO' || cNorm === 'UF' || cNorm === 'SIGLA ESTADO') {
+                                estadoUf = (row[chave] || '').toString().trim().toUpperCase();
+                            }
+                        }
+                        if (nomeMun) {
+                            const chaveNorm = normalizarTexto(nomeMun);
+                            if (!mapaUnico.has(chaveNorm)) {
+                                mapaUnico.set(chaveNorm, { municipio: nomeMun, estado: estadoUf });
+                            }
+                        }
+                    });
+
+                    listaMunicipios = Array.from(mapaUnico.values()).sort((a, b) =>
+                        a.municipio.localeCompare(b.municipio, 'pt-BR')
+                    );
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar aba MUNICIPIO:', e);
+            }
+        }
+
+        // =====================================================================
+        // CARREGAMENTO AUXILIAR DA ABA "clientes" (PARA AUTOCOMPLETAR CLIENTE)
+        // =====================================================================
+        async function buscarClientesReferencia(gidClientes) {
+            if (!gidClientes) return;
+            try {
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidClientes}&single=true&output=csv`;
+                const resp = await fetch(csvUrl);
+                if (!resp.ok) return;
+                const csvText = await resp.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (parsed.data && parsed.data.length > 0) {
+                    listaClientesRef = parsed.data
+                        .map(row => ({
+                            id: obterValorPorAliases(row, ['ID']),
+                            codigo: obterValorPorAliases(row, ['CODIGO DO CLIENTE', 'CODIGO', 'COD CLIENTE']),
+                            nome: obterValorPorAliases(row, ['NOME', 'CLIENTE', 'RAZAO SOCIAL'])
+                        }))
+                        .filter(c => c.nome !== '');
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar referência de clientes:', e);
+            }
+        }
+
+        // =====================================================================
+        // SINCRONIZAÇÃO PRINCIPAL COM A ABA "Clientes Endereço Cobrança"
+        // =====================================================================
+        async function buscarDadosPlanilhaGoogle() {
+            atualizarStatus('Conectando à aba "Clientes Endereço Cobrança" no Google Sheets...', 'loading');
+            document.getElementById('loading-box').classList.remove('hidden');
+            document.getElementById('tabela-wrapper').classList.add('hidden');
+            document.getElementById('empty-box').classList.add('hidden');
+
+            try {
+                let gidCobranca = null;
+                let gidMunicipio = null;
+                let gidClientes = null;
+
+                try {
+                    const respHtml = await fetch(PUBHTML_URL);
+                    const htmlText = await respHtml.text();
+                    const abas = extrairTodosGids(htmlText);
+
+                    gidCobranca = encontrarGidAba(abas, [
+                        'CLIENTES ENDERECO COBRANCA',
+                        'CLIENTE ENDERECO COBRANCA',
+                        'ENDERECO COBRANCA',
+                        'ENDERECO DE COBRANCA'
+                    ], null);
+
+                    gidMunicipio = encontrarGidAba(abas, ['MUNICIPIO', 'MUNICIPIOS'], null);
+                    gidClientes = encontrarGidAba(abas, ['CLIENTES'], '0');
+                } catch (e) {
+                    console.warn('Não foi possível ler o pubhtml diretamente:', e);
+                }
+
+                // Carrega municípios e referência de clientes em paralelo
+                await Promise.all([
+                    gidMunicipio ? buscarMunicipiosPlanilha(gidMunicipio) : Promise.resolve(),
+                    gidClientes ? buscarClientesReferencia(gidClientes) : Promise.resolve()
+                ]);
+
+                if (!gidCobranca) {
+                    throw new Error('Aba "Clientes Endereço Cobrança" não encontrada na publicação.');
+                }
+
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidCobranca}&single=true&output=csv`;
+                const respCsv = await fetch(csvUrl);
+                if (!respCsv.ok) throw new Error('Falha ao baixar CSV da aba Clientes Endereço Cobrança.');
+                const csvText = await respCsv.text();
+
+                const resultado = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                const colsDetectadas = (resultado.meta.fields || []).filter(c => c && c.trim() !== '');
+                
+                if (colsDetectadas.length > 0) {
+                    colunasPlanilha = [...colsDetectadas];
+                } else {
+                    colunasPlanilha = [...COLUNAS_PADRAO];
+                }
+
+                listaCobranca = (resultado.data || []).filter(row => {
+                    return Object.values(row).some(val => val && val.toString().trim() !== '');
+                });
+
+                // Fallback de municípios caso a aba MUNICIPIO não tenha retornado dados
+                if (listaMunicipios.length === 0) {
+                    const mapaFallback = new Map();
+                    listaCobranca.forEach(r => {
+                        const cid = obterValorPorAliases(r, ['CIDADE', 'MUNICIPIO']);
+                        const est = obterValorPorAliases(r, ['ESTADO', 'UF']).toUpperCase();
+                        if (cid) {
+                            const k = normalizarTexto(cid);
+                            if (!mapaFallback.has(k)) mapaFallback.set(k, { municipio: cid, estado: est });
+                        }
+                    });
+                    listaMunicipios = Array.from(mapaFallback.values()).sort((a, b) =>
+                        a.municipio.localeCompare(b.municipio, 'pt-BR')
+                    );
+                }
+
+                salvarNoStorage();
+                atualizarStatus(
+                    `Sincronizado — Aba "Clientes Endereço Cobrança" (${listaCobranca.length} registros • ${listaMunicipios.length} municípios)`,
+                    'ok'
+                );
+                renderizarTabela();
+
+            } catch (erro) {
+                console.error('Erro ao carregar aba Clientes Endereço Cobrança:', erro);
+                atualizarStatus('Modo offline / local ativo (verifique se a aba está publicada na web)', 'erro');
+                
+                if (colunasPlanilha.length === 0) {
+                    colunasPlanilha = [...COLUNAS_PADRAO];
+                }
+                renderizarTabela();
+            }
+        }
+
+        async function inicializarSistema() {
+            const dadosSalvos = localStorage.getItem(STORAGE_COBRANCA_KEY);
+            const colsSalvas = localStorage.getItem(STORAGE_COLUNAS_KEY);
+            const munSalvos = localStorage.getItem(STORAGE_MUNICIPIOS_KEY);
+            const cliRefSalvos = localStorage.getItem(STORAGE_CLIENTES_REF_KEY);
+
+            if (munSalvos) {
+                try { listaMunicipios = JSON.parse(munSalvos); } catch (e) {}
+            }
+            if (cliRefSalvos) {
+                try { listaClientesRef = JSON.parse(cliRefSalvos); } catch (e) {}
+            }
+
+            if (dadosSalvos && colsSalvas) {
+                try {
+                    listaCobranca = JSON.parse(dadosSalvos);
+                    colunasPlanilha = JSON.parse(colsSalvas);
+                    atualizarStatus(
+                        `Dados carregados — Aba "Clientes Endereço Cobrança" (${listaCobranca.length} registros)`,
+                        'ok'
+                    );
+                    renderizarTabela();
+                    return;
+                } catch (e) {
+                    console.warn('Cache inválido, recarregando da planilha...');
+                }
+            }
+
+            await buscarDadosPlanilhaGoogle();
+        }
+
+        async function recarregarPlanilha() {
+            if (confirm('Deseja recarregar os dados originais da aba "Clientes Endereço Cobrança" na planilha Google?')) {
+                await buscarDadosPlanilhaGoogle();
+                mostrarToast('Aba "Clientes Endereço Cobrança" sincronizada com sucesso!');
+            }
+        }
+
+        function salvarNoStorage() {
+            try {
+                localStorage.setItem(STORAGE_COBRANCA_KEY, JSON.stringify(listaCobranca));
+                localStorage.setItem(STORAGE_COLUNAS_KEY, JSON.stringify(colunasPlanilha));
+                localStorage.setItem(STORAGE_MUNICIPIOS_KEY, JSON.stringify(listaMunicipios));
+                localStorage.setItem(STORAGE_CLIENTES_REF_KEY, JSON.stringify(listaClientesRef));
+            } catch (e) {
+                console.warn('Erro ao salvar no localStorage:', e);
+            }
+        }
+
+        // =====================================================================
+        // EXTRAÇÃO INTELIGENTE DE CAMPOS PARA A TABELA E MODAIS
+        // =====================================================================
+        function extrairResumoCobranca(registro) {
+            const idVal = obterValorPorAliases(registro, ['ID', 'ID CLIENTE', 'ID COBRANCA']);
+            const codigo = obterValorPorAliases(registro, ['CODIGO DO CLIENTE', 'CODIGO', 'COD. CLIENTE', 'COD CLIENTE']);
+            const nome = obterValorPorAliases(registro, ['NOME', 'CLIENTE', 'NOME DO CLIENTE', 'RAZAO SOCIAL']);
+            
+            const enderecoDireto = obterValorPorAliases(registro, [
+                'ENDERECO DE COBRANCA',
+                'ENDERECO COBRANCA',
+                'ENDERECO',
+                'LOGRADOURO',
+                'RUA'
+            ]);
+            const numero = obterValorPorAliases(registro, ['NUMERO', 'NUM', 'N', 'N.']);
+            const complemento = obterValorPorAliases(registro, ['COMPLEMENTO', 'COMPL']);
+
+            let enderecoCompleto = enderecoDireto;
+            if (enderecoCompleto && numero && !enderecoCompleto.includes(numero)) {
+                enderecoCompleto += `, ${numero}`;
+            }
+            if (enderecoCompleto && complemento) {
+                enderecoCompleto += ` - ${complemento}`;
+            }
+
+            const bairro = obterValorPorAliases(registro, ['BAIRRO', 'DISTRITO']);
+            const cep = formatarCEP(obterValorPorAliases(registro, ['CEP', 'CEP COBRANCA']));
+            const cidade = obterValorPorAliases(registro, ['CIDADE', 'MUNICIPIO', 'CIDADE COBRANCA']);
+            const estado = obterValorPorAliases(registro, ['ESTADO', 'UF', 'ESTADO COBRANCA']).toUpperCase();
+
+            return {
+                idVal,
+                codigo,
+                nome,
+                enderecoCompleto,
+                bairro,
+                cep,
+                cidade,
+                estado
+            };
+        }
+
+        // =====================================================================
+        // RENDERIZAÇÃO DA TABELA DE ENDEREÇOS DE COBRANÇA
+        // =====================================================================
+        function renderizarTabela(filtro = '') {
+            const tbody = document.getElementById('tabela-cobranca-body');
+            const loadingBox = document.getElementById('loading-box');
+            const tabelaWrapper = document.getElementById('tabela-wrapper');
+            const emptyBox = document.getElementById('empty-box');
+            const contador = document.getElementById('contador-registros');
+
+            loadingBox.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            const termo = normalizarTexto(filtro);
+
+            const filtrados = listaCobranca
+                .map((registro, indexOriginal) => ({ registro, indexOriginal }))
+                .filter(({ registro }) => {
+                    if (!termo) return true;
+                    return Object.values(registro).some(val =>
+                        normalizarTexto(val).includes(termo)
+                    );
+                });
+
+            contador.textContent = filtrados.length;
+
+            if (filtrados.length === 0) {
+                tabelaWrapper.classList.add('hidden');
+                emptyBox.classList.remove('hidden');
+                return;
+            }
+
+            emptyBox.classList.add('hidden');
+            tabelaWrapper.classList.remove('hidden');
+
+            filtrados.forEach(({ registro, indexOriginal }) => {
+                const info = extrairResumoCobranca(registro);
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-creme/80 transition-colors group';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 sm:px-5 whitespace-nowrap">
+                        <div class="flex flex-col gap-1">
+                            ${info.idVal ? `
+                                <span class="inline-block w-fit px-2 py-0.5 rounded bg-trator/10 border border-trator/20 font-mono font-bold text-trator text-xs">
+                                    ${escapeHTML(info.idVal)}
+                                </span>
+                            ` : ''}
+                            <span class="inline-block w-fit px-2 py-0.5 rounded bg-petroleo/10 border border-petroleo/15 font-mono font-bold text-petroleo text-xs">
+                                ${escapeHTML(info.codigo || 'S/ CÓD')}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-5 font-semibold text-aco">
+                        <button 
+                            type="button" 
+                            onclick="abrirModalDetalhes(${indexOriginal})"
+                            class="text-left text-aco hover:text-trator font-bold underline decoration-trator/40 hover:decoration-trator underline-offset-4 transition-colors flex items-center gap-1.5"
+                            title="Clique para consultar a ficha completa de cobrança"
+                        >
+                            <span>${escapeHTML(info.nome || 'Cliente não identificado')}</span>
+                            <i data-lucide="external-link" class="w-3.5 h-3.5 text-trator opacity-70 group-hover:opacity-100 flex-shrink-0"></i>
+                        </button>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-5 text-aco/90">
+                        <div class="flex items-start gap-1.5">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-trator flex-shrink-0 mt-0.5"></i>
+                            <span>${escapeHTML(info.enderecoCompleto || '—')}</span>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-5 text-aco/85">
+                        <div class="font-medium">${escapeHTML(info.bairro || '—')}</div>
+                        ${info.cep ? `<div class="text-xs font-mono text-petroleo font-semibold mt-0.5">CEP: ${escapeHTML(info.cep)}</div>` : ''}
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-5 whitespace-nowrap">
+                        <span class="font-semibold text-aco">${escapeHTML(info.cidade || '—')}</span>
+                        ${info.estado ? `
+                            <span class="ml-1.5 inline-block px-2 py-0.5 rounded bg-cremeEscuro border border-aco/15 font-bold text-xs text-aco uppercase">
+                                ${escapeHTML(info.estado)}
+                            </span>
+                        ` : ''}
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-5 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1.5">
+                            <button 
+                                type="button"
+                                onclick="abrirModalDetalhes(${indexOriginal})"
+                                class="p-2 rounded-lg bg-cremeEscuro hover:bg-aco hover:text-white text-aco transition-colors"
+                                title="Consultar Ficha Completa"
+                            >
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button 
+                                type="button"
+                                onclick="abrirModalFormulario('editar', ${indexOriginal})"
+                                class="p-2 rounded-lg bg-petroleo/10 hover:bg-petroleo text-petroleo hover:text-white transition-colors"
+                                title="Editar Endereço de Cobrança"
+                            >
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button 
+                                type="button"
+                                onclick="abrirModalExcluir(${indexOriginal})"
+                                class="p-2 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors"
+                                title="Excluir Endereço"
+                            >
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+        }
+
+        function filtrarRegistros() {
+            const termo = document.getElementById('campo-busca').value;
+            renderizarTabela(termo);
+        }
+
+        // =====================================================================
+        // MODAL 1: CONSULTA COMPLETA DE ENDEREÇO DE COBRANÇA
+        // =====================================================================
+        function abrirModalDetalhes(index) {
+            const registro = listaCobranca[index];
+            if (!registro) return;
+
+            const info = extrairResumoCobranca(registro);
+
+            document.getElementById('detalhe-id-badge').textContent = `ID: ${info.idVal || 'S/N'}`;
+            document.getElementById('detalhe-codigo-badge').textContent = `CÓDIGO: ${info.codigo || 'S/N'}`;
+            document.getElementById('detalhe-titulo-nome').textContent = info.nome || 'Endereço de Cobrança';
+
+            const grid = document.getElementById('detalhes-grid');
+            grid.innerHTML = '';
+
+            const chavesExibir = colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(registro);
+
+            chavesExibir.forEach(coluna => {
+                const valorBruto = obterValorCampo(registro, coluna) || registro[coluna] || '';
+                const valorFormatado = aplicarFormatacaoPorColuna(coluna, valorBruto);
+                const colNorm = normalizarTexto(coluna);
+
+                const cardCampo = document.createElement('div');
+                cardCampo.className = 'bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm';
+                if (colNorm.includes('ENDERECO') || colNorm.includes('LOGRADOURO') || colNorm.includes('REFERENCIA') || colNorm.includes('OBSERVA') || colNorm === 'NOME') {
+                    cardCampo.classList.add('sm:col-span-2');
+                }
+
+                cardCampo.innerHTML = `
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-petroleo mb-1">
+                        ${escapeHTML(coluna)}
+                    </span>
+                    <span class="block text-sm font-semibold text-aco break-words">
+                        ${valorFormatado ? escapeHTML(valorFormatado) : '<span class="text-aco/35 italic font-normal">Não informado</span>'}
+                    </span>
+                `;
+                grid.appendChild(cardCampo);
+            });
+
+            document.getElementById('btn-detalhe-editar').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalFormulario('editar', index);
+            };
+            document.getElementById('btn-detalhe-excluir').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalExcluir(index);
+            };
+
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalDetalhes() {
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =====================================================================
+        // MODAL 2: ADICIONAR / EDITAR ENDEREÇO DE COBRANÇA
+        // =====================================================================
+        function abrirModalFormulario(modo, index = -1) {
+            const modal = document.getElementById('modal-formulario');
+            const titulo = document.getElementById('form-titulo');
+            const subtitulo = document.getElementById('form-subtitulo');
+            const iconBox = document.getElementById('form-icon-box');
+            const inputIndex = document.getElementById('registro-index-edicao');
+            const inputModo = document.getElementById('registro-modo-edicao');
+            const containerCampos = document.getElementById('form-campos-dinamicos');
+
+            inputIndex.value = index;
+            inputModo.value = modo;
+            containerCampos.innerHTML = '';
+
+            const registroAtual = (modo === 'editar' && index >= 0) ? listaCobranca[index] : {};
+
+            if (modo === 'novo') {
+                titulo.textContent = 'Novo Endereço de Cobrança';
+                subtitulo.textContent = 'Cadastre um endereço de cobrança para o cliente';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="map-pin-plus" class="w-5 h-5"></i>';
+            } else {
+                titulo.textContent = 'Editar Endereço de Cobrança';
+                subtitulo.textContent = 'Atualize os dados do endereço de cobrança e clique em Salvar';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-petroleo text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="pencil" class="w-5 h-5"></i>';
+            }
+
+            // Se houver clientes carregados da aba "clientes" e estivermos criando um novo, oferece seletor rápido opcional
+            if (modo === 'novo' && listaClientesRef.length > 0) {
+                const boxAtalho = document.createElement('div');
+                boxAtalho.className = 'sm:col-span-2 bg-petroleo/10 border border-petroleo/25 rounded-xl p-3.5';
+                let opts = `<option value="">— Opcional: Selecione um cliente cadastrado para preencher ID/Código/Nome —</option>`;
+                listaClientesRef.forEach((c, i) => {
+                    opts += `<option value="${i}">${escapeHTML(c.nome)} ${c.codigo ? `(Cód: ${escapeHTML(c.codigo)})` : ''}</option>`;
+                });
+                boxAtalho.innerHTML = `
+                    <label class="block text-xs font-bold uppercase text-petroleo mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="users" class="w-3.5 h-3.5 text-trator"></i>
+                        <span>Importar Identificação da Base de Clientes</span>
+                    </label>
+                    <select onchange="preencherDadosClienteBase(this.value)" class="w-full px-3 py-2 rounded-lg bg-white border border-aco/20 text-xs sm:text-sm font-semibold text-aco focus:outline-none focus:border-trator">
+                        ${opts}
+                    </select>
+                `;
+                containerCampos.appendChild(boxAtalho);
+            }
+
+            const campos = colunasPlanilha.length > 0 ? colunasPlanilha : COLUNAS_PADRAO;
+
+            campos.forEach((coluna, idx) => {
+                const colNorm = normalizarTexto(coluna);
+                const ehCampoId = (colNorm === 'ID' || colNorm === 'ID CLIENTE');
+                const ehCampoCodigo = (colNorm === 'CODIGO DO CLIENTE' || colNorm === 'CODIGO' || colNorm === 'COD CLIENTE');
+                const ehCampoNome = (colNorm === 'NOME' || colNorm === 'CLIENTE' || colNorm === 'NOME DO CLIENTE');
+                const ehCampoCidade = (colNorm === 'CIDADE' || colNorm === 'MUNICIPIO' || colNorm === 'CIDADE COBRANCA');
+                const ehCampoEstado = (colNorm === 'ESTADO' || colNorm === 'UF' || colNorm === 'ESTADO COBRANCA');
+                const ehCampoCep = colNorm.includes('CEP');
+                const ehEmail = (colNorm.includes('EMAIL') || colNorm.includes('E-MAIL'));
+                const ehTelefone = (colNorm.includes('FONE') || colNorm.includes('TEL') || colNorm.includes('CELULAR'));
+
+                const obrigatorio = (ehCampoNome || colNorm.includes('ENDERECO') || colNorm.includes('LOGRADOURO'));
+                let valorInicial = (modo === 'editar') ? (obterValorCampo(registroAtual, coluna) || registroAtual[coluna] || '') : '';
+
+                if (modo === 'novo' && ehCampoId) {
+                    valorInicial = 'MCB-';
+                }
+
+                const div = document.createElement('div');
+                if (
+                    colNorm.includes('ENDERECO') ||
+                    colNorm.includes('LOGRADOURO') ||
+                    colNorm.includes('REFERENCIA') ||
+                    colNorm.includes('OBSERVA') ||
+                    ehCampoNome
+                ) {
+                    div.className = 'sm:col-span-2';
+                }
+
+                let fieldId = `campo-form-${idx}`;
+                if (ehCampoId) fieldId = 'input-campo-id';
+                else if (ehCampoCodigo) fieldId = 'input-campo-codigo';
+                else if (ehCampoNome) fieldId = 'input-campo-nome';
+                else if (ehCampoCidade) fieldId = 'select-campo-cidade';
+                else if (ehCampoEstado) fieldId = 'input-campo-estado';
+
+                // Campo CIDADE vinculado à aba MUNICIPIO
+                if (ehCampoCidade && listaMunicipios.length > 0) {
+                    const valorNorm = normalizarTexto(valorInicial);
+                    const existeNaLista = listaMunicipios.some(m => normalizarTexto(m.municipio) === valorNorm);
+
+                    let opcoesHtml = `<option value="">Selecione o município...</option>`;
+                    if (valorInicial && !existeNaLista) {
+                        opcoesHtml += `<option value="${escapeHTML(valorInicial)}" data-estado="" selected>${escapeHTML(valorInicial)}</option>`;
+                    }
+
+                    listaMunicipios.forEach(item => {
+                        const selecionado = (normalizarTexto(item.municipio) === valorNorm) ? 'selected' : '';
+                        opcoesHtml += `<option value="${escapeHTML(item.municipio)}" data-estado="${escapeHTML(item.estado)}" ${selecionado}>${escapeHTML(item.municipio)}${item.estado ? ` (${escapeHTML(item.estado)})` : ''}</option>`;
+                    });
+
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Aba MUNICIPIO)</span>
+                        </label>
+                        <select 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            onchange="sincronizarEstadoPorCidade(this)"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-semibold text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                            ${opcoesHtml}
+                        </select>
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // Campo ESTADO preenchido automaticamente conforme a cidade
+                if (ehCampoEstado) {
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(UF)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial.toUpperCase())}"
+                            maxlength="2"
+                            placeholder="UF"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/70 font-bold uppercase text-petroleo border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                let tipoInput = 'text';
+                let placeholder = `Digite ${escapeHTML(coluna.toLowerCase())}`;
+                let inputMode = '';
+
+                if (ehEmail) {
+                    tipoInput = 'email';
+                    placeholder = 'cobranca@empresa.com.br';
+                    inputMode = 'email';
+                } else if (ehTelefone) {
+                    placeholder = '(00) 00000-0000';
+                    valorInicial = formatarTelefoneAuto(valorInicial);
+                    inputMode = 'tel';
+                } else if (ehCampoCep) {
+                    placeholder = '00000-000';
+                    valorInicial = formatarCEP(valorInicial);
+                    inputMode = 'numeric';
+                } else if (colNorm === 'CPF') {
+                    placeholder = '000.000.000-00';
+                    valorInicial = formatarCPF(valorInicial);
+                    inputMode = 'numeric';
+                } else if (colNorm === 'CNPJ') {
+                    placeholder = '00.000.000/0000-00';
+                    valorInicial = formatarCNPJ(valorInicial);
+                    inputMode = 'numeric';
+                } else if (ehCampoId) {
+                    placeholder = 'MCB-INICIAIS';
+                }
+
+                const estiloCampo = ehCampoId
+                    ? 'bg-cremeEscuro/70 font-mono font-bold text-trator'
+                    : 'bg-white text-aco';
+
+                const eventoInput = ehCampoNome && modo === 'novo'
+                    ? `oninput="atualizarIdAutomaticoPorNome(this.value)"`
+                    : `oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"`;
+
+                div.innerHTML = `
+                    <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                        ${escapeHTML(coluna)} ${obrigatorio ? '<span class="text-trator">*</span>' : ''}
+                    </label>
+                    <input 
+                        type="${tipoInput}" 
+                        id="${fieldId}"
+                        data-coluna="${escapeHTML(coluna)}"
+                        ${inputMode ? `inputmode="${inputMode}"` : ''}
+                        value="${escapeHTML(valorInicial)}"
+                        ${obrigatorio ? 'required' : ''}
+                        ${eventoInput}
+                        placeholder="${escapeHTML(placeholder)}"
+                        class="w-full px-3.5 py-2.5 rounded-xl ${estiloCampo} border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                    >
+                `;
+                containerCampos.appendChild(div);
+            });
+
+            const selectCidade = document.getElementById('select-campo-cidade');
+            const inputEstado = document.getElementById('input-campo-estado');
+            if (selectCidade && inputEstado && selectCidade.value && !inputEstado.value.trim()) {
+                sincronizarEstadoPorCidade(selectCidade);
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function preencherDadosClienteBase(indexRef) {
+            if (indexRef === '' || indexRef === null) return;
+            const cli = listaClientesRef[parseInt(indexRef, 10)];
+            if (!cli) return;
+
+            const inputId = document.getElementById('input-campo-id');
+            const inputCod = document.getElementById('input-campo-codigo');
+            const inputNome = document.getElementById('input-campo-nome');
+
+            if (inputNome && cli.nome) {
+                inputNome.value = cli.nome;
+            }
+            if (inputCod && cli.codigo) {
+                inputCod.value = cli.codigo;
+            }
+            if (inputId) {
+                inputId.value = cli.id || gerarIdPadraoMCB(cli.nome);
+            }
+        }
+
+        function sincronizarEstadoPorCidade(selectEl) {
+            const inputEstado = document.getElementById('input-campo-estado');
+            if (!inputEstado) return;
+
+            const optSelecionada = selectEl.options[selectEl.selectedIndex];
+            let estadoCorrespondente = optSelecionada ? (optSelecionada.getAttribute('data-estado') || '') : '';
+
+            if (!estadoCorrespondente && selectEl.value) {
+                const munNorm = normalizarTexto(selectEl.value);
+                const encontrado = listaMunicipios.find(m => normalizarTexto(m.municipio) === munNorm);
+                if (encontrado) estadoCorrespondente = encontrado.estado || '';
+            }
+
+            if (estadoCorrespondente) {
+                inputEstado.value = estadoCorrespondente.toUpperCase();
+            }
+        }
+
+        function atualizarIdAutomaticoPorNome(nomeDigitado) {
+            const inputId = document.getElementById('input-campo-id');
+            if (inputId) {
+                inputId.value = gerarIdPadraoMCB(nomeDigitado);
+            }
+        }
+
+        function fecharModalFormulario() {
+            const modal = document.getElementById('modal-formulario');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function salvarRegistro(event) {
+            event.preventDefault();
+            const index = parseInt(document.getElementById('registro-index-edicao').value, 10);
+            const modo = document.getElementById('registro-modo-edicao').value;
+            const campos = document.querySelectorAll('#form-campos-dinamicos input[data-coluna], #form-campos-dinamicos select[data-coluna]');
+            
+            const registro = (index >= 0 && listaCobranca[index]) ? { ...listaCobranca[index] } : {};
+
+            campos.forEach(campo => {
+                const nomeColuna = campo.getAttribute('data-coluna');
+                const valorFormatado = aplicarFormatacaoPorColuna(nomeColuna, campo.value.trim());
+                registro[nomeColuna] = valorFormatado;
+            });
+
+            if (modo === 'novo') {
+                const nomeCliente = obterValorPorAliases(registro, ['NOME', 'CLIENTE', 'NOME DO CLIENTE']);
+                const idGerado = gerarIdPadraoMCB(nomeCliente);
+                const chaveId = Object.keys(registro).find(k => normalizarTexto(k) === 'ID' || normalizarTexto(k) === 'ID CLIENTE');
+                
+                if (chaveId && (!registro[chaveId] || registro[chaveId] === 'MCB-')) {
+                    registro[chaveId] = idGerado;
+                }
+            }
+
+            if (index >= 0) {
+                listaCobranca[index] = registro;
+                mostrarToast('Endereço de cobrança atualizado com sucesso!');
+            } else {
+                listaCobranca.unshift(registro);
+                mostrarToast('Novo endereço de cobrança cadastrado com sucesso!');
+            }
+
+            salvarNoStorage();
+            fecharModalFormulario();
+            filtrarRegistros();
+            atualizarStatus(`Base atualizada — Aba "Clientes Endereço Cobrança" (${listaCobranca.length} registros)`, 'ok');
+        }
+
+        // =====================================================================
+        // MODAL 3: EXCLUIR ENDEREÇO DE COBRANÇA
+        // =====================================================================
+        function abrirModalExcluir(index) {
+            const registro = listaCobranca[index];
+            if (!registro) return;
+
+            indiceParaExcluir = index;
+            const info = extrairResumoCobranca(registro);
+            const nomeExibir = info.nome || 'este cliente';
+            document.getElementById('excluir-nome-cliente').textContent = info.idVal ? `${info.idVal} - ${nomeExibir}` : nomeExibir;
+
+            document.getElementById('btn-confirmar-exclusao').onclick = confirmarExclusao;
+
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalExcluir() {
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            indiceParaExcluir = -1;
+        }
+
+        function confirmarExclusao() {
+            if (indiceParaExcluir >= 0 && indiceParaExcluir < listaCobranca.length) {
+                listaCobranca.splice(indiceParaExcluir, 1);
+                salvarNoStorage();
+                filtrarRegistros();
+                atualizarStatus(`Base atualizada — Aba "Clientes Endereço Cobrança" (${listaCobranca.length} registros)`, 'ok');
+                mostrarToast('Endereço de cobrança excluído com sucesso!');
+            }
+            fecharModalExcluir();
+        }
+
+        // =====================================================================
+        // UTILITÁRIOS
+        // =====================================================================
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = mensagem;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 4000);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharModalDetalhes();
+                fecharModalFormulario();
+                fecharModalExcluir();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', inicializarSistema);
+    </script>
+</body>
+</html>
