@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEMHES 2027 — Portal de Municípios</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes Google: Oswald (Títulos Industriais) e Inter (Textos e Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PapaParse para leitura precisa de CSV da planilha publicada -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Configuração de Cores e Fontes Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
+                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
+                        trator: '#D9531E',       /* Laranja vibrante do trator */
+                        tratorHover: '#B84214',  /* Laranja escuro para hover */
+                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
+                        petroleoHover: '#153448',/* Azul escuro para hover */
+                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
+                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                    },
+                    fontFamily: {
+                        display: ['Oswald', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Padrão sutil de textura industrial no fundo creme */
+        body {
+            background-color: #F7F3EA;
+            background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #1C2226;
+        }
+
+        /* Estilo de borda chanfrada/robusta */
+        .card-industrial {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom-width: 6px;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ECE5D5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E4863;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D9531E;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
+
+    <!-- ===================================================================== -->
+    <!-- 1. CABEÇALHO (HEADER) - MANTIDO ORIGINAL                               -->
+    <!-- ===================================================================== -->
+    <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
+        <!-- Faixa Institucional Superior -->
+        <div class="bg-petroleo/90 border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-ambar animate-pulse"></span>
+                    <span>BEMHES 2027 — Soluções em Lubrificação Industrial, Agrícola e Automotiva</span>
+                </div>
+                <div class="flex items-center gap-4 text-creme/80">
+                    <span id="data-atual" class="hidden md:inline"></span>
+                    <span class="px-2 py-0.5 rounded bg-aco/60 text-ambar font-semibold text-xs border border-ambar/30">
+                        Sistema Operacional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
+        <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
+                <div class="flex-shrink-0 flex justify-center">
+                    <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
+                        <!-- TAMANHO DA LOGO: ALTERE AQUI -->
+                        <img 
+                            src="MARCAO DA GRAXA.jpg" 
+                            alt="Logo Oficial Marcão da Graxa" 
+                            style="width: 100px; height: auto;"
+                            class="object-contain block rounded-xl"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/F7F3EA/1C2226?text=MARCÃO+DA+GRAXA.jpg';"
+                        >
+                    </div>
+                </div>
+
+                <!-- Título e Apresentação do Portal -->
+                <div class="text-center md:text-left flex-1 md:pl-6">
+                    <h4 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
+                        BEMHES <span class="text-trator">MUNICÍPIOS</span>
+                    </h4>
+                    <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>                   
+                </div>
+                
+                <nav>
+                    <a href="index.html"
+                       class="inline-flex items-center gap-2 rounded-lg
+                              bg-[#944b20] px-5 py-3 text-white font-semibold
+                              shadow-lg transition-all duration-300
+                              hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
+                       title="Voltar para a página inicial">
+
+                        <!-- Seta para a esquerda -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="24" height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2.5"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+
+                        <span>Voltar</span>
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. CORPO DA PÁGINA (BASE DE MUNICÍPIOS - ABA "MUNICIPIO")             -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <!-- Barra Superior de Título e Ações -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 border-b-2 border-aco/10 pb-5">
+            <div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold uppercase text-petroleo tracking-wide flex items-center gap-2.5">
+                    <span class="w-3 h-8 bg-trator rounded-sm inline-block"></span>
+                    Base de Municípios
+                </h2>
+                <p class="text-sm text-aco/70 mt-1 flex items-center gap-2">
+                    <span id="status-planilha" class="inline-flex items-center gap-1.5 font-medium text-petroleo">
+                        <span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span>
+                        Sincronizando dados com a aba "MUNICIPIO"...
+                    </span>
+                </p>
+            </div>
+            
+            <!-- Botões Principais de Ação -->
+            <div class="flex flex-wrap items-center gap-3">
+                <button 
+                    type="button"
+                    onclick="recarregarPlanilha()"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-sm font-semibold border border-aco/20 transition-all shadow-sm"
+                    title="Recarregar dados originais da aba MUNICIPIO no Google Sheets"
+                >
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-petroleo"></i>
+                    <span>Sincronizar Planilha</span>
+                </button>
+
+                <button 
+                    type="button"
+                    onclick="abrirModalFormulario('novo')"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-trator hover:bg-tratorHover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
+                >
+                    <i data-lucide="map-pin-plus" class="w-4 h-4"></i>
+                    <span>Novo Município</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Pesquisa, Filtro por UF e Contadores -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-aco/15 mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="w-5 h-5 text-aco/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="campo-busca" 
+                    oninput="filtrarMunicipios()"
+                    placeholder="Buscar por ID, nome do município, código IBGE, estado ou região..." 
+                    class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-creme/60 border border-aco/20 text-sm text-aco placeholder-aco/50 focus:outline-none focus:border-petroleo focus:bg-white transition-colors"
+                >
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between md:justify-end gap-3 text-sm">
+                <!-- Filtro Rápido de Estado (UF) -->
+                <div class="flex items-center gap-2">
+                    <label for="filtro-uf" class="text-xs font-bold uppercase text-petroleo whitespace-nowrap">UF:</label>
+                    <select 
+                        id="filtro-uf" 
+                        onchange="filtrarMunicipios()"
+                        class="px-3 py-2 rounded-xl bg-creme/60 border border-aco/20 text-sm font-bold text-aco focus:outline-none focus:border-petroleo"
+                    >
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <div class="px-3.5 py-2 rounded-xl bg-petroleo/10 text-petroleo font-bold border border-petroleo/20 whitespace-nowrap">
+                    Total listado: <span id="contador-municipios" class="text-trator">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container da Tabela de Municípios -->
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-aco/15 border-b-petroleo card-industrial overflow-hidden">
+            
+            <!-- Estado de Carregamento -->
+            <div id="loading-box" class="py-16 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-petroleo/10 text-petroleo mb-4">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Carregando aba "MUNICIPIO"...</h3>
+                <p class="text-sm text-aco/60 mt-1">Buscando registros diretamente do Google Sheets.</p>
+            </div>
+
+            <!-- Tabela Responsiva -->
+            <div id="tabela-wrapper" class="hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead id="tabela-municipios-head">
+                        <!-- Cabeçalhos dinâmicos conforme colunas da aba MUNICIPIO -->
+                    </thead>
+                    <tbody id="tabela-municipios-body" class="divide-y divide-aco/10 text-sm">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <div id="paginacao-box" class="hidden bg-creme/60 border-t border-aco/10 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+                <div class="text-aco/75 font-medium">
+                    Exibindo <strong id="pag-inicio" class="text-aco">0</strong> a <strong id="pag-fim" class="text-aco">0</strong> de <strong id="pag-total" class="text-petroleo">0</strong> municípios
+                </div>
+                <div class="flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        id="btn-pag-anterior" 
+                        onclick="mudarPagina(-1)"
+                        class="px-3.5 py-1.5 rounded-lg bg-white border border-aco/20 text-aco font-semibold hover:bg-petroleo hover:text-white disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1"
+                    >
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        <span>Anterior</span>
+                    </button>
+                    <span id="pag-info" class="px-3 py-1.5 rounded-lg bg-petroleo/10 text-petroleo font-bold">
+                        Página 1 de 1
+                    </span>
+                    <button 
+                        type="button" 
+                        id="btn-pag-proxima" 
+                        onclick="mudarPagina(1)"
+                        class="px-3.5 py-1.5 rounded-lg bg-white border border-aco/20 text-aco font-semibold hover:bg-petroleo hover:text-white disabled:opacity-40 disabled:pointer-events-none transition-colors flex items-center gap-1"
+                    >
+                        <span>Próxima</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Estado Vazio / Sem Resultados -->
+            <div id="empty-box" class="hidden py-14 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cremeEscuro text-aco/50 mb-3">
+                    <i data-lucide="map-pin-off" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Nenhum município encontrado</h3>
+                <p class="text-sm text-aco/60 mt-1">Tente ajustar os filtros de busca ou cadastre um novo município.</p>
+            </div>
+        </div>
+
+        <!-- Nota informativa discreta -->
+        <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
+            <span>Dica: O campo <strong>ID</strong> é gerado automaticamente em sequência numérica ao cadastrar novos municípios. Clique no nome do município para consultar todos os detalhes.</span>
+        </p>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. RODAPÉ (FOOTER) - MANTIDO ORIGINAL                                 -->
+    <!-- ===================================================================== -->
+    <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Identificação da Empresa -->
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
+                        <span class="font-display text-xl font-bold uppercase tracking-wider text-white">
+                            BEMHES 2027
+                        </span>
+                    </div>
+                    <p class="text-sm text-creme/75">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>
+                </div>
+
+                <!-- Contatos Institucionais -->
+                <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
+                        <span>Atendimento Técnico & Comercial</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-ambar"></i>
+                        <span>Qualidade Garantida</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha Inferior de Direitos Autorais -->
+            <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
+                <p>&copy; <span id="ano-atual">2026</span> BEMHES 2027. Todos os direitos reservados.</p>
+                <p>Portal Administrativo v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: FICHA COMPLETA DO MUNICÍPIO                                  -->
+    <!-- ===================================================================== -->
+    <div id="modal-detalhes" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-start justify-between border-b border-aco/15 pb-4 mb-5 gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-petroleo text-white flex items-center justify-center flex-shrink-0 shadow">
+                        <i data-lucide="map-pin" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span id="detalhe-id-badge" class="inline-block px-2.5 py-0.5 rounded bg-petroleo/15 text-petroleo font-mono font-bold text-xs uppercase tracking-wider">
+                                ID: ---
+                            </span>
+                            <span id="detalhe-uf-badge" class="inline-block px-2.5 py-0.5 rounded bg-trator/15 text-trator font-bold text-xs uppercase tracking-wider">
+                                UF: ---
+                            </span>
+                        </div>
+                        <h3 id="detalhe-titulo-nome" class="font-display text-2xl font-bold uppercase text-aco leading-tight">
+                            Nome do Município
+                        </h3>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalDetalhes()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors" title="Fechar">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Corpo com Todos os Campos da Planilha -->
+            <div id="detalhes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Campos injetados dinamicamente -->
+            </div>
+
+            <!-- Rodapé do Modal de Consulta -->
+            <div class="mt-6 pt-4 border-t border-aco/15 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-detalhe-editar" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-petroleo hover:bg-petroleoHover text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                        <span>Editar Município</span>
+                    </button>
+                    <button type="button" id="btn-detalhe-excluir" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Excluir Município</span>
+                    </button>
+                </div>
+
+                <button type="button" onclick="fecharModalDetalhes()" class="px-5 py-2 rounded-xl text-sm font-bold bg-aco text-creme hover:bg-black transition-colors">
+                    Fechar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: FORMULÁRIO PARA ADICIONAR OU EDITAR MUNICÍPIO                -->
+    <!-- ===================================================================== -->
+    <div id="modal-formulario" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div id="form-icon-box" class="w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="map-pin-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="form-titulo" class="font-display text-xl sm:text-2xl font-bold uppercase text-aco">Novo Município</h3>
+                        <p id="form-subtitulo" class="text-xs text-aco/70">ID gerado automaticamente na sequência numérica</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalFormulario()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Formulário Dinâmico -->
+            <form id="form-municipio" onsubmit="salvarMunicipio(event)">
+                <input type="hidden" id="municipio-index-edicao" value="-1">
+                <input type="hidden" id="municipio-modo-edicao" value="novo">
+                
+                <div id="form-campos-dinamicos" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- Inputs gerados dinamicamente conforme as colunas da aba MUNICIPIO -->
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
+                    <button type="button" onclick="fecharModalFormulario()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-trator hover:bg-tratorHover text-white shadow-md transition-colors flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Salvar Dados</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: CONFIRMAÇÃO DE EXCLUSÃO                                      -->
+    <!-- ===================================================================== -->
+    <div id="modal-excluir" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
+        <div class="bg-creme border-2 border-red-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="font-display text-xl font-bold uppercase text-aco">Excluir Município</h3>
+                    <p class="text-xs text-aco/70">Esta ação removerá o registro da listagem</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-aco/85 mb-6 leading-relaxed">
+                Tem certeza que deseja excluir o município <strong id="excluir-nome-municipio" class="text-red-700">---</strong>?
+            </p>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" onclick="fecharModalExcluir()" class="px-4 py-2 rounded-xl text-sm font-semibold text-aco/80 hover:bg-aco/10 transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirmar-exclusao" class="px-5 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-md transition-colors flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TOAST DE NOTIFICAÇÃO                                                  -->
+    <!-- ===================================================================== -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 bg-aco text-white px-4 py-3 rounded-xl shadow-xl border-l-4 border-trator text-sm font-medium">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-ambar"></i>
+        <span id="toast-msg">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS (ABA "MUNICIPIO") & CRUD      -->
+    <!-- ===================================================================== -->
+    <script>
+        // Inicializa ícones Lucide e datas
+        lucide.createIcons();
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
+        document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+        // Planilha Google Publicada (Aba "MUNICIPIO")
+        const PUB_ID_PLANILHA = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
+        const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pubhtml`;
+
+        // Chaves de Armazenamento Local
+        const STORAGE_MUNICIPIOS_KEY = 'bemhes_2027_municipios_db_v2';
+        const STORAGE_COLUNAS_KEY = 'bemhes_2027_municipios_cols_v2';
+
+        // Estado global da aplicação
+        let listaMunicipios = [];
+        let colunasPlanilha = [];
+        let listaFiltradaAtual = [];
+        let paginaAtual = 1;
+        const ITENS_POR_PAGINA = 50;
+        let indiceParaExcluir = -1;
+
+        // Colunas padrão caso a planilha esteja inacessível offline
+        const COLUNAS_PADRAO = [
+            'ID',
+            'MUNICIPIO',
+            'ESTADO'
+        ];
+
+        const UFS_BRASIL = [
+            'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+            'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+            'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+        ];
+
+        function normalizarTexto(str) {
+            return (str || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[̀-ͯ]/g, '')
+                .trim()
+                .toUpperCase();
+        }
+
+        function identificarColunaId() {
+            return colunasPlanilha.find(c => normalizarTexto(c) === 'ID') || 'ID';
+        }
+
+        function identificarColunaMunicipio() {
+            return colunasPlanilha.find(c => {
+                const n = normalizarTexto(c);
+                return n === 'MUNICIPIO' || n === 'CIDADE' || n === 'NOME DO MUNICIPIO' || n === 'NOME';
+            }) || colunasPlanilha.find(c => normalizarTexto(c) !== 'ID') || 'MUNICIPIO';
+        }
+
+        function identificarColunaEstado() {
+            return colunasPlanilha.find(c => {
+                const n = normalizarTexto(c);
+                return n === 'ESTADO' || n === 'UF' || n === 'SIGLA ESTADO' || n === 'SIGLA UF';
+            }) || 'ESTADO';
+        }
+
+        function obterValorCampo(registro, nomeColunaAlvo) {
+            if (!registro) return '';
+            if (registro[nomeColunaAlvo] !== undefined) return registro[nomeColunaAlvo] || '';
+            const alvoNorm = normalizarTexto(nomeColunaAlvo);
+            for (const chave of Object.keys(registro)) {
+                if (normalizarTexto(chave) === alvoNorm) {
+                    return registro[chave] || '';
+                }
+            }
+            return '';
+        }
+
+        // =====================================================================
+        // GERAÇÃO AUTOMÁTICA DO CAMPO "ID" EM SEQUÊNCIA NUMÉRICA
+        // =====================================================================
+        function gerarProximoIdSequencial() {
+            const colId = identificarColunaId();
+            let maiorId = 0;
+
+            listaMunicipios.forEach(item => {
+                const valBruto = obterValorCampo(item, colId).toString().trim();
+                const apenasNumeros = valBruto.replace(/\D/g, '');
+                const num = parseInt(apenasNumeros, 10);
+                if (!isNaN(num) && num > maiorId) {
+                    maiorId = num;
+                }
+            });
+
+            return String(maiorId + 1);
+        }
+
+        // Garante que a coluna "ID" exista e preenche automaticamente IDs vazios na sequência
+        function garantirSequenciaNumericaIds() {
+            const colId = identificarColunaId();
+            let maiorId = 0;
+
+            listaMunicipios.forEach(item => {
+                const val = obterValorCampo(item, colId).toString().trim();
+                const num = parseInt(val.replace(/\D/g, ''), 10);
+                if (!isNaN(num) && num > maiorId) {
+                    maiorId = num;
+                }
+            });
+
+            listaMunicipios.forEach(item => {
+                const atual = obterValorCampo(item, colId).toString().trim();
+                if (!atual) {
+                    maiorId += 1;
+                    item[colId] = String(maiorId);
+                }
+            });
+        }
+
+        function atualizarStatus(texto, tipo = 'ok') {
+            const el = document.getElementById('status-planilha');
+            if (tipo === 'loading') {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span> <span>${texto}</span>`;
+            } else if (tipo === 'erro') {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> <span class="text-red-700">${texto}</span>`;
+            } else {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> <span class="text-aco/80">${texto}</span>`;
+            }
+        }
+
+        // =====================================================================
+        // DESCOBERTA DO GID DA ABA "MUNICIPIO" NO PUBHTML
+        // =====================================================================
+        function extrairGidAbaMunicipio(htmlText) {
+            const nomesAlvo = ['MUNICIPIO', 'MUNICIPIOS'];
+
+            const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
+            let match;
+            while ((match = regexAba.exec(htmlText)) !== null) {
+                const nomeAba = normalizarTexto(match[1]);
+                if (nomesAlvo.includes(nomeAba)) {
+                    return match[2];
+                }
+            }
+
+            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+            const elementos = doc.querySelectorAll('li[id^="sheet-button-"], a, li, button, span');
+            for (const el of elementos) {
+                const textoAba = normalizarTexto(el.textContent);
+                if (nomesAlvo.includes(textoAba)) {
+                    const href = el.getAttribute('href') || '';
+                    const idAttr = el.id || '';
+                    const mHref = href.match(/gid=(\d+)/);
+                    const mId = idAttr.match(/(\d+)/);
+                    if (mHref) return mHref[1];
+                    if (mId) return mId[1];
+                }
+            }
+
+            return null;
+        }
+
+        // =====================================================================
+        // BUSCA DOS DADOS DA ABA "MUNICIPIO" NO GOOGLE SHEETS
+        // =====================================================================
+        async function buscarDadosPlanilhaGoogle() {
+            atualizarStatus('Conectando à aba "MUNICIPIO" da planilha Google...', 'loading');
+            document.getElementById('loading-box').classList.remove('hidden');
+            document.getElementById('tabela-wrapper').classList.add('hidden');
+            document.getElementById('paginacao-box').classList.add('hidden');
+            document.getElementById('empty-box').classList.add('hidden');
+
+            try {
+                const respHtml = await fetch(PUBHTML_URL);
+                if (!respHtml.ok) throw new Error('Falha ao acessar a planilha publicada.');
+                const htmlText = await respHtml.text();
+
+                const gidMunicipio = extrairGidAbaMunicipio(htmlText);
+                if (!gidMunicipio) {
+                    throw new Error('Não foi possível localizar o identificador (GID) da aba "MUNICIPIO".');
+                }
+
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidMunicipio}&single=true&output=csv`;
+                const respCsv = await fetch(csvUrl);
+                if (!respCsv.ok) throw new Error('Falha ao baixar CSV da aba "MUNICIPIO".');
+                const csvText = await respCsv.text();
+
+                const resultado = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (resultado.data && resultado.data.length > 0) {
+                    const colsDetectadas = (resultado.meta.fields || []).filter(c => c && c.trim() !== '');
+                    colunasPlanilha = colsDetectadas.length > 0 ? [...colsDetectadas] : [...COLUNAS_PADRAO];
+
+                    // Garante que a coluna "ID" seja a primeira coluna caso não exista na planilha
+                    if (!colunasPlanilha.some(c => normalizarTexto(c) === 'ID')) {
+                        colunasPlanilha.unshift('ID');
+                    }
+
+                    listaMunicipios = resultado.data.filter(row => {
+                        return Object.values(row).some(val => val && val.toString().trim() !== '');
+                    });
+
+                    // Preenche sequência numérica para registros sem ID
+                    garantirSequenciaNumericaIds();
+
+                    salvarNoStorage();
+                    popularFiltroUF();
+                    atualizarStatus(`Sincronizado com a aba "MUNICIPIO" (${listaMunicipios.length} registros)`, 'ok');
+                    paginaAtual = 1;
+                    filtrarMunicipios();
+                } else {
+                    throw new Error('A aba "MUNICIPIO" retornou vazia.');
+                }
+
+            } catch (erro) {
+                console.error('Erro ao carregar aba MUNICIPIO:', erro);
+                atualizarStatus('Modo offline / local ativo (verifique a conexão com a planilha Google)', 'erro');
+
+                if (colunasPlanilha.length === 0) {
+                    colunasPlanilha = [...COLUNAS_PADRAO];
+                }
+                popularFiltroUF();
+                filtrarMunicipios();
+            }
+        }
+
+        async function inicializarSistema() {
+            const dadosSalvos = localStorage.getItem(STORAGE_MUNICIPIOS_KEY);
+            const colsSalvas = localStorage.getItem(STORAGE_COLUNAS_KEY);
+
+            if (dadosSalvos && colsSalvas) {
+                try {
+                    listaMunicipios = JSON.parse(dadosSalvos);
+                    colunasPlanilha = JSON.parse(colsSalvas);
+                    if (!colunasPlanilha.some(c => normalizarTexto(c) === 'ID')) {
+                        colunasPlanilha.unshift('ID');
+                    }
+                    garantirSequenciaNumericaIds();
+
+                    if (listaMunicipios.length > 0 && colunasPlanilha.length > 0) {
+                        popularFiltroUF();
+                        atualizarStatus(`Dados carregados (${listaMunicipios.length} municípios da aba "MUNICIPIO")`, 'ok');
+                        filtrarMunicipios();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Cache inválido, recarregando da planilha...');
+                }
+            }
+
+            await buscarDadosPlanilhaGoogle();
+        }
+
+        async function recarregarPlanilha() {
+            if (confirm('Deseja recarregar os dados originais da aba "MUNICIPIO" do Google Sheets? Isso substituirá alterações feitas apenas localmente.')) {
+                await buscarDadosPlanilhaGoogle();
+                mostrarToast('Dados da aba "MUNICIPIO" sincronizados com sucesso!');
+            }
+        }
+
+        function salvarNoStorage() {
+            try {
+                localStorage.setItem(STORAGE_MUNICIPIOS_KEY, JSON.stringify(listaMunicipios));
+                localStorage.setItem(STORAGE_COLUNAS_KEY, JSON.stringify(colunasPlanilha));
+            } catch (e) {
+                console.warn('Erro ao salvar no localStorage:', e);
+            }
+        }
+
+        // =====================================================================
+        // FILTRO DE ESTADOS (UF) E PESQUISA
+        // =====================================================================
+        function popularFiltroUF() {
+            const selectUF = document.getElementById('filtro-uf');
+            const valorAnterior = selectUF.value;
+            const colEstado = identificarColunaEstado();
+
+            const ufsPresentes = new Set();
+            listaMunicipios.forEach(item => {
+                const uf = obterValorCampo(item, colEstado).toString().trim().toUpperCase();
+                if (uf) ufsPresentes.add(uf);
+            });
+
+            const ufsOrdenadas = Array.from(ufsPresentes).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+            selectUF.innerHTML = '<option value="">Todos os Estados</option>';
+            ufsOrdenadas.forEach(uf => {
+                const opt = document.createElement('option');
+                opt.value = uf;
+                opt.textContent = uf;
+                selectUF.appendChild(opt);
+            });
+
+            if (ufsOrdenadas.includes(valorAnterior)) {
+                selectUF.value = valorAnterior;
+            }
+        }
+
+        function filtrarMunicipios() {
+            const termo = normalizarTexto(document.getElementById('campo-busca').value);
+            const ufFiltro = document.getElementById('filtro-uf').value.trim().toUpperCase();
+            const colEstado = identificarColunaEstado();
+
+            listaFiltradaAtual = listaMunicipios
+                .map((municipio, indexOriginal) => ({ municipio, indexOriginal }))
+                .filter(({ municipio }) => {
+                    if (ufFiltro) {
+                        const ufItem = obterValorCampo(municipio, colEstado).toString().trim().toUpperCase();
+                        if (ufItem !== ufFiltro) return false;
+                    }
+
+                    if (!termo) return true;
+
+                    return colunasPlanilha.some(col => {
+                        const val = normalizarTexto(obterValorCampo(municipio, col));
+                        return val.includes(termo);
+                    });
+                });
+
+            paginaAtual = 1;
+            renderizarTabela();
+        }
+
+        function mudarPagina(delta) {
+            const totalPaginas = Math.max(1, Math.ceil(listaFiltradaAtual.length / ITENS_POR_PAGINA));
+            const novaPagina = paginaAtual + delta;
+            if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+                paginaAtual = novaPagina;
+                renderizarTabela();
+                document.getElementById('tabela-wrapper').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // =====================================================================
+        // RENDERIZAÇÃO DINÂMICA DA TABELA
+        // =====================================================================
+        function renderizarTabela() {
+            const thead = document.getElementById('tabela-municipios-head');
+            const tbody = document.getElementById('tabela-municipios-body');
+            const loadingBox = document.getElementById('loading-box');
+            const tabelaWrapper = document.getElementById('tabela-wrapper');
+            const paginacaoBox = document.getElementById('paginacao-box');
+            const emptyBox = document.getElementById('empty-box');
+            const contador = document.getElementById('contador-municipios');
+
+            loadingBox.classList.add('hidden');
+            contador.textContent = listaFiltradaAtual.length;
+
+            if (listaFiltradaAtual.length === 0) {
+                tabelaWrapper.classList.add('hidden');
+                paginacaoBox.classList.add('hidden');
+                emptyBox.classList.remove('hidden');
+                return;
+            }
+
+            emptyBox.classList.add('hidden');
+            tabelaWrapper.classList.remove('hidden');
+
+            const colId = identificarColunaId();
+            const colMunicipio = identificarColunaMunicipio();
+            const colEstado = identificarColunaEstado();
+
+            // Monta cabeçalho dinâmico conforme colunas da aba MUNICIPIO
+            let thHtml = `
+                <tr class="bg-aco text-creme font-display uppercase text-sm tracking-wider border-b-2 border-trator">
+            `;
+            colunasPlanilha.forEach(col => {
+                const isEstado = normalizarTexto(col) === normalizarTexto(colEstado);
+                thHtml += `<th class="py-4 px-4 sm:px-5 whitespace-nowrap ${isEstado ? 'text-center' : ''}">${escapeHTML(col)}</th>`;
+            });
+            thHtml += `
+                    <th class="py-4 px-4 sm:px-5 text-right whitespace-nowrap">Ações</th>
+                </tr>
+            `;
+            thead.innerHTML = thHtml;
+
+            // Paginação
+            const totalItens = listaFiltradaAtual.length;
+            const totalPaginas = Math.max(1, Math.ceil(totalItens / ITENS_POR_PAGINA));
+            if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+            const inicioIdx = (paginaAtual - 1) * ITENS_POR_PAGINA;
+            const fimIdx = Math.min(inicioIdx + ITENS_POR_PAGINA, totalItens);
+            const paginaItens = listaFiltradaAtual.slice(inicioIdx, fimIdx);
+
+            tbody.innerHTML = '';
+
+            paginaItens.forEach(({ municipio, indexOriginal }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-creme/80 transition-colors group';
+
+                let tdsHtml = '';
+
+                colunasPlanilha.forEach(col => {
+                    const valor = obterValorCampo(municipio, col) || '—';
+                    const colNorm = normalizarTexto(col);
+
+                    if (colNorm === normalizarTexto(colId)) {
+                        tdsHtml += `
+                            <td class="py-3.5 px-4 sm:px-5 font-mono font-bold text-trator whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-md bg-trator/10 border border-trator/20 text-xs">
+                                    ${escapeHTML(valor)}
+                                </span>
+                            </td>
+                        `;
+                    } else if (colNorm === normalizarTexto(colMunicipio)) {
+                        tdsHtml += `
+                            <td class="py-3.5 px-4 sm:px-5 font-semibold text-aco">
+                                <button 
+                                    type="button" 
+                                    onclick="abrirModalDetalhes(${indexOriginal})"
+                                    class="text-left text-aco hover:text-trator font-bold underline decoration-trator/40 hover:decoration-trator underline-offset-4 transition-colors inline-flex items-center gap-1.5"
+                                    title="Clique para consultar os detalhes de ${escapeHTML(valor)}"
+                                >
+                                    <span>${escapeHTML(valor)}</span>
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5 text-trator opacity-70 group-hover:opacity-100"></i>
+                                </button>
+                            </td>
+                        `;
+                    } else if (colNorm === normalizarTexto(colEstado)) {
+                        tdsHtml += `
+                            <td class="py-3.5 px-4 sm:px-5 text-center whitespace-nowrap">
+                                <span class="inline-block px-2.5 py-0.5 rounded bg-petroleo/10 border border-petroleo/20 font-bold text-xs text-petroleo uppercase">
+                                    ${escapeHTML(valor)}
+                                </span>
+                            </td>
+                        `;
+                    } else if (colNorm.includes('COD') || colNorm.includes('IBGE')) {
+                        tdsHtml += `
+                            <td class="py-3.5 px-4 sm:px-5 font-mono font-bold text-petroleo whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-md bg-petroleo/10 border border-petroleo/15 text-xs">
+                                    ${escapeHTML(valor)}
+                                </span>
+                            </td>
+                        `;
+                    } else {
+                        tdsHtml += `
+                            <td class="py-3.5 px-4 sm:px-5 text-aco/85">
+                                ${escapeHTML(valor)}
+                            </td>
+                        `;
+                    }
+                });
+
+                tdsHtml += `
+                    <td class="py-3.5 px-4 sm:px-5 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1.5">
+                            <button 
+                                type="button"
+                                onclick="abrirModalDetalhes(${indexOriginal})"
+                                class="p-2 rounded-lg bg-cremeEscuro hover:bg-aco hover:text-white text-aco transition-colors"
+                                title="Consultar Detalhes"
+                            >
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button 
+                                type="button"
+                                onclick="abrirModalFormulario('editar', ${indexOriginal})"
+                                class="p-2 rounded-lg bg-petroleo/10 hover:bg-petroleo text-petroleo hover:text-white transition-colors"
+                                title="Editar Município"
+                            >
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button 
+                                type="button"
+                                onclick="abrirModalExcluir(${indexOriginal})"
+                                class="p-2 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors"
+                                title="Excluir Município"
+                            >
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                tr.innerHTML = tdsHtml;
+                tbody.appendChild(tr);
+            });
+
+            // Atualiza barra de paginação
+            if (totalItens > ITENS_POR_PAGINA) {
+                paginacaoBox.classList.remove('hidden');
+                document.getElementById('pag-inicio').textContent = inicioIdx + 1;
+                document.getElementById('pag-fim').textContent = fimIdx;
+                document.getElementById('pag-total').textContent = totalItens;
+                document.getElementById('pag-info').textContent = `Página ${paginaAtual} de ${totalPaginas}`;
+                document.getElementById('btn-pag-anterior').disabled = (paginaAtual <= 1);
+                document.getElementById('btn-pag-proxima').disabled = (paginaAtual >= totalPaginas);
+            } else {
+                paginacaoBox.classList.add('hidden');
+            }
+
+            lucide.createIcons();
+        }
+
+        // =====================================================================
+        // MODAL 1: DETALHES DO MUNICÍPIO
+        // =====================================================================
+        function abrirModalDetalhes(index) {
+            const item = listaMunicipios[index];
+            if (!item) return;
+
+            const colId = identificarColunaId();
+            const colMunicipio = identificarColunaMunicipio();
+            const colEstado = identificarColunaEstado();
+
+            const idMun = obterValorCampo(item, colId) || 'S/N';
+            const nomeMun = obterValorCampo(item, colMunicipio) || 'Município';
+            const ufMun = obterValorCampo(item, colEstado) || 'S/N';
+
+            document.getElementById('detalhe-id-badge').textContent = `ID: ${idMun}`;
+            document.getElementById('detalhe-titulo-nome').textContent = nomeMun;
+            document.getElementById('detalhe-uf-badge').textContent = `UF: ${ufMun}`;
+
+            const grid = document.getElementById('detalhes-grid');
+            grid.innerHTML = '';
+
+            colunasPlanilha.forEach(coluna => {
+                const valor = obterValorCampo(item, coluna);
+                const cardCampo = document.createElement('div');
+                cardCampo.className = 'bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm';
+                cardCampo.innerHTML = `
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-petroleo mb-1">
+                        ${escapeHTML(coluna)}
+                    </span>
+                    <span class="block text-sm font-semibold text-aco break-words">
+                        ${valor ? escapeHTML(valor) : '<span class="text-aco/35 italic font-normal">Não informado</span>'}
+                    </span>
+                `;
+                grid.appendChild(cardCampo);
+            });
+
+            document.getElementById('btn-detalhe-editar').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalFormulario('editar', index);
+            };
+            document.getElementById('btn-detalhe-excluir').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalExcluir(index);
+            };
+
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalDetalhes() {
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =====================================================================
+        // MODAL 2: ADICIONAR OU EDITAR MUNICÍPIO
+        // =====================================================================
+        function abrirModalFormulario(modo, index = -1) {
+            const modal = document.getElementById('modal-formulario');
+            const titulo = document.getElementById('form-titulo');
+            const subtitulo = document.getElementById('form-subtitulo');
+            const iconBox = document.getElementById('form-icon-box');
+            const inputIndex = document.getElementById('municipio-index-edicao');
+            const inputModo = document.getElementById('municipio-modo-edicao');
+            const containerCampos = document.getElementById('form-campos-dinamicos');
+
+            inputIndex.value = index;
+            inputModo.value = modo;
+            containerCampos.innerHTML = '';
+
+            const itemAtual = (modo === 'editar' && index >= 0) ? listaMunicipios[index] : {};
+
+            if (modo === 'novo') {
+                titulo.textContent = 'Adicionar Novo Município';
+                subtitulo.textContent = 'O campo ID é gerado automaticamente na sequência numérica';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="map-pin-plus" class="w-5 h-5"></i>';
+            } else {
+                titulo.textContent = 'Editar Dados do Município';
+                subtitulo.textContent = 'Atualize as informações e clique em Salvar';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-petroleo text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="pencil" class="w-5 h-5"></i>';
+            }
+
+            const colId = identificarColunaId();
+            const colMunicipio = identificarColunaMunicipio();
+            const colEstado = identificarColunaEstado();
+            const campos = colunasPlanilha.length > 0 ? colunasPlanilha : COLUNAS_PADRAO;
+
+            campos.forEach((coluna, idx) => {
+                const colNorm = normalizarTexto(coluna);
+                const ehId = (colNorm === normalizarTexto(colId));
+                const ehMunicipio = (colNorm === normalizarTexto(colMunicipio));
+                const ehEstado = (colNorm === normalizarTexto(colEstado));
+
+                let valorInicial = (modo === 'editar') ? obterValorCampo(itemAtual, coluna) : '';
+
+                // Preenche automaticamente o próximo número sequencial no campo ID ao criar novo
+                if (ehId && modo === 'novo') {
+                    valorInicial = gerarProximoIdSequencial();
+                }
+
+                const div = document.createElement('div');
+                if (ehMunicipio) {
+                    div.className = 'sm:col-span-2';
+                }
+
+                if (ehId) {
+                    div.innerHTML = `
+                        <label for="input-campo-id" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-trator">*</span>
+                            <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Automático Sequencial)</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="input-campo-id"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial)}"
+                            readonly
+                            required
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/80 font-mono font-bold text-trator border border-aco/25 text-sm cursor-not-allowed focus:outline-none"
+                        >
+                    `;
+                } else if (ehEstado) {
+                    const ufAtual = valorInicial.toString().trim().toUpperCase();
+                    let optionsHtml = '<option value="">Selecione a UF...</option>';
+                    UFS_BRASIL.forEach(uf => {
+                        optionsHtml += `<option value="${uf}" ${uf === ufAtual ? 'selected' : ''}>${uf}</option>`;
+                    });
+                    if (ufAtual && !UFS_BRASIL.includes(ufAtual)) {
+                        optionsHtml += `<option value="${escapeHTML(ufAtual)}" selected>${escapeHTML(ufAtual)}</option>`;
+                    }
+
+                    div.innerHTML = `
+                        <label for="campo-form-${idx}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-trator">*</span>
+                        </label>
+                        <select 
+                            id="campo-form-${idx}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            required
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-bold text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                            ${optionsHtml}
+                        </select>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <label for="campo-form-${idx}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} ${ehMunicipio ? '<span class="text-trator">*</span>' : ''}
+                        </label>
+                        <input 
+                            type="text" 
+                            id="campo-form-${idx}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial)}"
+                            ${ehMunicipio ? 'required' : ''}
+                            placeholder="Digite ${escapeHTML(coluna.toLowerCase())}"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                }
+
+                containerCampos.appendChild(div);
+            });
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalFormulario() {
+            const modal = document.getElementById('modal-formulario');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function salvarMunicipio(event) {
+            event.preventDefault();
+            const index = parseInt(document.getElementById('municipio-index-edicao').value, 10);
+            const modo = document.getElementById('municipio-modo-edicao').value;
+            const campos = document.querySelectorAll('#form-campos-dinamicos input[data-coluna], #form-campos-dinamicos select[data-coluna]');
+            const colId = identificarColunaId();
+            const colEstado = identificarColunaEstado();
+
+            const registro = (index >= 0 && listaMunicipios[index]) ? { ...listaMunicipios[index] } : {};
+
+            campos.forEach(campo => {
+                const nomeColuna = campo.getAttribute('data-coluna');
+                let val = campo.value.trim();
+                if (normalizarTexto(nomeColuna) === normalizarTexto(colEstado)) {
+                    val = val.toUpperCase();
+                }
+                registro[nomeColuna] = val;
+            });
+
+            // Reforça a sequência numérica automática do ID no salvamento de novo cadastro
+            if (modo === 'novo') {
+                const proximoId = gerarProximoIdSequencial();
+                registro[colId] = proximoId;
+            }
+
+            if (index >= 0) {
+                listaMunicipios[index] = registro;
+                mostrarToast('Dados do município atualizados com sucesso!');
+            } else {
+                listaMunicipios.unshift(registro);
+                mostrarToast(`Novo município cadastrado com ID #${registro[colId]}!`);
+            }
+
+            salvarNoStorage();
+            popularFiltroUF();
+            fecharModalFormulario();
+            filtrarMunicipios();
+            atualizarStatus(`Base atualizada (${listaMunicipios.length} municípios cadastrados)`, 'ok');
+        }
+
+        // =====================================================================
+        // MODAL 3: EXCLUIR MUNICÍPIO
+        // =====================================================================
+        function abrirModalExcluir(index) {
+            const item = listaMunicipios[index];
+            if (!item) return;
+
+            indiceParaExcluir = index;
+            const colId = identificarColunaId();
+            const colMunicipio = identificarColunaMunicipio();
+            const colEstado = identificarColunaEstado();
+            const idVal = obterValorCampo(item, colId);
+            const nome = obterValorCampo(item, colMunicipio) || 'este município';
+            const uf = obterValorCampo(item, colEstado);
+
+            const label = `${idVal ? `#${idVal} - ` : ''}${nome}${uf ? ` (${uf})` : ''}`;
+            document.getElementById('excluir-nome-municipio').textContent = label;
+            document.getElementById('btn-confirmar-exclusao').onclick = confirmarExclusao;
+
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalExcluir() {
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            indiceParaExcluir = -1;
+        }
+
+        function confirmarExclusao() {
+            if (indiceParaExcluir >= 0 && indiceParaExcluir < listaMunicipios.length) {
+                listaMunicipios.splice(indiceParaExcluir, 1);
+                salvarNoStorage();
+                popularFiltroUF();
+                filtrarMunicipios();
+                atualizarStatus(`Base atualizada (${listaMunicipios.length} municípios cadastrados)`, 'ok');
+                mostrarToast('Município excluído com sucesso!');
+            }
+            fecharModalExcluir();
+        }
+
+        // =====================================================================
+        // UTILITÁRIOS
+        // =====================================================================
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = mensagem;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 4000);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharModalDetalhes();
+                fecharModalFormulario();
+                fecharModalExcluir();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', inicializarSistema);
+    </script>
+</body>
+</html>
