@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEMHES 2027 — Endereços de Entrega de Clientes</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes Google: Oswald (Títulos Industriais) e Inter (Textos e Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PapaParse para leitura precisa de CSV da planilha publicada -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Configuração de Cores e Fontes Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
+                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
+                        trator: '#D9531E',       /* Laranja vibrante do trator */
+                        tratorHover: '#B84214',  /* Laranja escuro para hover */
+                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
+                        petroleoHover: '#153448',/* Azul escuro para hover */
+                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
+                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                    },
+                    fontFamily: {
+                        display: ['Oswald', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Padrão sutil de textura industrial no fundo creme */
+        body {
+            background-color: #F7F3EA;
+            background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #1C2226;
+        }
+
+        /* Estilo de borda chanfrada/robusta */
+        .card-industrial {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom-width: 6px;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ECE5D5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E4863;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D9531E;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
+
+    <!-- ===================================================================== -->
+    <!-- 1. CABEÇALHO (HEADER) - MANTIDO ORIGINAL                               -->
+    <!-- ===================================================================== -->
+    <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
+        <!-- Faixa Institucional Superior -->
+        <div class="bg-petroleo/90 border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-ambar animate-pulse"></span>
+                    <span>BEMHES 2027 — Soluções em Lubrificação Industrial, Agrícola e Automotiva</span>
+                </div>
+                <div class="flex items-center gap-4 text-creme/80">
+                    <span id="data-atual" class="hidden md:inline"></span>
+                    <span class="px-2 py-0.5 rounded bg-aco/60 text-ambar font-semibold text-xs border border-ambar/30">
+                        Sistema Operacional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
+        <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
+                <div class="flex-shrink-0 flex justify-center">
+                    <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
+                        <!-- TAMANHO DA LOGO: ALTERE AQUI -->
+                        <img 
+                            src="MARCAO DA GRAXA.jpg" 
+                            alt="Logo Oficial Marcão da Graxa" 
+                            style="width: 100px; height: auto;"
+                            class="object-contain block rounded-xl"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/F7F3EA/1C2226?text=MARCÃO+DA+GRAXA.jpg';"
+                        >
+                    </div>
+                </div>
+
+                <!-- Título e Apresentação do Portal -->
+                <div class="text-center md:text-left flex-1 md:pl-6">
+                    <h4 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
+                        BEMHES <span class="text-trator">ENDEREÇO ENTREGA</span>
+                    </h4>
+                    <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>                   
+                </div>
+                
+                <nav>
+                    <a href="Portal Cliente.html"
+                       class="inline-flex items-center gap-2 rounded-lg
+                              bg-[#944b20] px-5 py-3 text-white font-semibold
+                              shadow-lg transition-all duration-300
+                              hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
+                       title="Voltar para a página inicial">
+
+                        <!-- Seta para a esquerda -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="24" height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2.5"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+
+                        <span>Voltar</span>
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. CORPO DA PÁGINA (ENDEREÇOS DE ENTREGA DOS CLIENTES - CRUD)         -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <!-- Barra Superior de Título e Ações -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 border-b-2 border-aco/10 pb-5">
+            <div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold uppercase text-petroleo tracking-wide flex items-center gap-2.5">
+                    <span class="w-3 h-8 bg-trator rounded-sm inline-block"></span>
+                    Endereços de Entrega de Clientes
+                </h2>
+                <p class="text-sm text-aco/70 mt-1 flex items-center gap-2">
+                    <span id="status-planilha" class="inline-flex items-center gap-1.5 font-medium text-petroleo">
+                        <span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span>
+                        Sincronizando dados com a aba "Clientes Endereço Entrega"...
+                    </span>
+                </p>
+            </div>
+            
+            <!-- Botões Principais de Ação -->
+            <div class="flex flex-wrap items-center gap-3">
+                <button 
+                    type="button"
+                    onclick="recarregarPlanilha()"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-sm font-semibold border border-aco/20 transition-all shadow-sm"
+                    title="Recarregar dados originais da planilha Google"
+                >
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-petroleo"></i>
+                    <span>Sincronizar Planilha</span>
+                </button>
+
+                <button 
+                    type="button"
+                    onclick="abrirModalFormulario('novo')"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-trator hover:bg-tratorHover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
+                >
+                    <i data-lucide="map-pin-plus" class="w-4 h-4"></i>
+                    <span>Novo Endereço</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Pesquisa e Contadores -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-aco/15 mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="w-5 h-5 text-aco/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="campo-busca" 
+                    oninput="filtrarEntregas()"
+                    placeholder="Buscar por ID, código, cliente, nome da entrega, endereço, cidade, estado ou telefone..." 
+                    class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-creme/60 border border-aco/20 text-sm text-aco placeholder-aco/50 focus:outline-none focus:border-petroleo focus:bg-white transition-colors"
+                >
+            </div>
+
+            <div class="flex items-center justify-between md:justify-end gap-4 text-sm">
+                <div class="px-3.5 py-2 rounded-xl bg-petroleo/10 text-petroleo font-bold border border-petroleo/20">
+                    Total listado: <span id="contador-entregas" class="text-trator">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container da Tabela de Endereços de Entrega -->
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-aco/15 border-b-petroleo card-industrial overflow-hidden">
+            
+            <!-- Estado de Carregamento -->
+            <div id="loading-box" class="py-16 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-petroleo/10 text-petroleo mb-4">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Carregando aba "Clientes Endereço Entrega"...</h3>
+                <p class="text-sm text-aco/60 mt-1">Buscando pontos de entrega e municípios diretamente do Google Sheets.</p>
+            </div>
+
+            <!-- Tabela Responsiva -->
+            <div id="tabela-wrapper" class="hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-aco text-creme font-display uppercase text-sm tracking-wider border-b-2 border-trator">
+                            <th class="py-4 px-4 sm:px-5 whitespace-nowrap">ID / Cód.</th>
+                            <th class="py-4 px-4 sm:px-5">Cliente / Nome da Entrega</th>
+                            <th class="py-4 px-4 sm:px-5">Endereço Entrega</th>
+                            <th class="py-4 px-4 sm:px-5">Cidade Entrega / UF</th>
+                            <th class="py-4 px-4 sm:px-5 text-center whitespace-nowrap">Estrada Terra &gt;5km</th>
+                            <th class="py-4 px-4 sm:px-5 text-right whitespace-nowrap">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-entregas-body" class="divide-y divide-aco/10 text-sm">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado Vazio / Sem Resultados -->
+            <div id="empty-box" class="hidden py-14 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cremeEscuro text-aco/50 mb-3">
+                    <i data-lucide="map-pin-off" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Nenhum endereço encontrado</h3>
+                <p class="text-sm text-aco/60 mt-1">Tente ajustar os termos da busca ou cadastre um novo endereço de entrega.</p>
+            </div>
+        </div>
+
+        <!-- Nota informativa discreta -->
+        <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
+            <span>Dica: O campo <strong>Nome da entrega</strong> é composto automaticamente no padrão <strong>ENDERECO ENTREGA - CIDADE ENTREGA</strong>, o campo <strong>TELEFONE ENTREGA</strong> se adapta automaticamente a fixo ou celular, e <strong>ESTRADA TERRA &gt;5KM</strong> utiliza caixa de seleção para <strong>SIM</strong>.</span>
+        </p>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. RODAPÉ (FOOTER) - MANTIDO ORIGINAL                                 -->
+    <!-- ===================================================================== -->
+    <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Identificação da Empresa -->
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
+                        <span class="font-display text-xl font-bold uppercase tracking-wider text-white">
+                            BEMHES 2027
+                        </span>
+                    </div>
+                    <p class="text-sm text-creme/75">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>
+                </div>
+
+                <!-- Contatos Institucionais -->
+                <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
+                        <span>Atendimento Técnico & Comercial</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-ambar"></i>
+                        <span>Qualidade Garantida</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha Inferior de Direitos Autorais -->
+            <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
+                <p>&copy; <span id="ano-atual">2026</span> BEMHES 2027. Todos os direitos reservados.</p>
+                <p>Portal Administrativo v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: FICHA COMPLETA DO ENDEREÇO DE ENTREGA (CONSULTA)             -->
+    <!-- ===================================================================== -->
+    <div id="modal-detalhes" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-start justify-between border-b border-aco/15 pb-4 mb-5 gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-petroleo text-white flex items-center justify-center flex-shrink-0 shadow">
+                        <i data-lucide="truck" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span id="detalhe-id-badge" class="inline-block px-2.5 py-0.5 rounded bg-petroleo/15 text-petroleo font-mono font-bold text-xs uppercase tracking-wider">
+                                ID: ---
+                            </span>
+                            <span id="detalhe-codigo-badge" class="inline-block px-2.5 py-0.5 rounded bg-trator/15 text-trator font-bold text-xs uppercase tracking-wider">
+                                CÓD: ---
+                            </span>
+                        </div>
+                        <h3 id="detalhe-titulo-nome" class="font-display text-2xl font-bold uppercase text-aco leading-tight">
+                            Nome da Entrega
+                        </h3>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalDetalhes()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors" title="Fechar">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Corpo com Todos os Campos da Planilha (exceto TIPO FONE ENTREGA) -->
+            <div id="detalhes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Campos injetados dinamicamente -->
+            </div>
+
+            <!-- Rodapé do Modal de Consulta com Botões Rápidos de Editar / Excluir / Mapa -->
+            <div class="mt-6 pt-4 border-t border-aco/15 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="btn-detalhe-editar" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-petroleo hover:bg-petroleoHover text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                        <span>Editar Endereço</span>
+                    </button>
+                    <a id="btn-detalhe-mapa" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ambar hover:bg-amber-600 text-aco text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="map" class="w-4 h-4"></i>
+                        <span>Abrir no Mapa</span>
+                    </a>
+                    <button type="button" id="btn-detalhe-excluir" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Excluir</span>
+                    </button>
+                </div>
+
+                <button type="button" onclick="fecharModalDetalhes()" class="px-5 py-2 rounded-xl text-sm font-bold bg-aco text-creme hover:bg-black transition-colors">
+                    Fechar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: FORMULÁRIO PARA ADICIONAR OU EDITAR ENDEREÇO DE ENTREGA      -->
+    <!-- ===================================================================== -->
+    <div id="modal-formulario" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <!-- Cabeçalho do Modal -->
+            <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div id="form-icon-box" class="w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="map-pin-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="form-titulo" class="font-display text-xl sm:text-2xl font-bold uppercase text-aco">Novo Endereço de Entrega</h3>
+                        <p id="form-subtitulo" class="text-xs text-aco/70">Preencha os dados completos do local de entrega</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalFormulario()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Formulário Dinâmico -->
+            <form id="form-entrega" onsubmit="salvarEntrega(event)">
+                <input type="hidden" id="entrega-index-edicao" value="-1">
+                <input type="hidden" id="entrega-modo-edicao" value="novo">
+                
+                <div id="form-campos-dinamicos" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- Inputs, selects e checkbox gerados dinamicamente -->
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
+                    <button type="button" onclick="fecharModalFormulario()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-trator hover:bg-tratorHover text-white shadow-md transition-colors flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Salvar Endereço</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: CONFIRMAÇÃO DE EXCLUSÃO                                      -->
+    <!-- ===================================================================== -->
+    <div id="modal-excluir" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
+        <div class="bg-creme border-2 border-red-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="font-display text-xl font-bold uppercase text-aco">Excluir Endereço</h3>
+                    <p class="text-xs text-aco/70">Esta ação removerá o endereço de entrega da listagem</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-aco/85 mb-6 leading-relaxed">
+                Tem certeza que deseja excluir o endereço de entrega <strong id="excluir-nome-entrega" class="text-red-700">---</strong>?
+            </p>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" onclick="fecharModalExcluir()" class="px-4 py-2 rounded-xl text-sm font-semibold text-aco/80 hover:bg-aco/10 transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirmar-exclusao" class="px-5 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-md transition-colors flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TOAST DE NOTIFICAÇÃO                                                  -->
+    <!-- ===================================================================== -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 bg-aco text-white px-4 py-3 rounded-xl shadow-xl border-l-4 border-trator text-sm font-medium">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-ambar"></i>
+        <span id="toast-msg">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM GOOGLE SHEETS ("Clientes Endereço Entrega") -->
+    <!-- ===================================================================== -->
+    <script>
+        // Inicializa ícones Lucide e datas
+        lucide.createIcons();
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
+        document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+        // Planilha Principal (Abas "Clientes Endereço Entrega", "clientes" e "MUNICIPIO")
+        const PUB_ID_PLANILHA = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
+        const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pubhtml`;
+
+        // Chaves de Armazenamento Local
+        const STORAGE_ENTREGAS_KEY = 'marcao_da_graxa_entregas_db_v3';
+        const STORAGE_COLUNAS_ENTREGAS_KEY = 'marcao_da_graxa_entregas_cols_v3';
+        const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v5';
+        const STORAGE_CLIENTES_REF_KEY = 'marcao_da_graxa_clientes_ref_v1';
+
+        // Estado global da aplicação
+        let listaEntregas = [];
+        let colunasPlanilha = [];
+        let listaMunicipios = [];     // { municipio, estado }
+        let listaClientesRef = [];    // { id, codigo, nome }
+        let indiceParaExcluir = -1;
+
+        // Colunas padrão fallback caso a planilha esteja vazia ou offline
+        const COLUNAS_PADRAO_ENTREGA = [
+            'ID',
+            'CODIGO DO CLIENTE',
+            'CLIENTE',
+            'NOME DA ENTREGA',
+            'ENDERECO ENTREGA',
+            'NUMERO',
+            'COMPLEMENTO',
+            'BAIRRO',
+            'CIDADE ENTREGA',
+            'ESTADO ENTREGA',
+            'CEP',
+            'ESTRADA TERRA >5KM',
+            'PONTO DE REFERENCIA',
+            'CONTATO RECEBIMENTO',
+            'TELEFONE ENTREGA',
+            'OBSERVACOES'
+        ];
+
+        // Normaliza texto para comparação
+        function normalizarTexto(str) {
+            return (str || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toUpperCase();
+        }
+
+        // =====================================================================
+        // IDENTIFICAÇÃO FLEXÍVEL DE COLUNAS DA PLANILHA
+        // =====================================================================
+        // Coluna ignorada/removida conforme solicitado ("TIPO FONE ENTREGA")
+        function ehColunaIgnorada(colNorm) {
+            return colNorm === 'TIPO FONE ENTREGA' ||
+                   colNorm === 'TIPO TELEFONE ENTREGA' ||
+                   colNorm === 'TIPO DE FONE ENTREGA' ||
+                   colNorm === 'TIPO DE TELEFONE ENTREGA' ||
+                   colNorm === 'TIPO FONE';
+        }
+
+        function ehColunaId(colNorm) {
+            return colNorm === 'ID' || colNorm === 'ID CLIENTE' || colNorm === 'ID ENTREGA';
+        }
+
+        function ehColunaCodigoCliente(colNorm) {
+            return colNorm === 'CODIGO DO CLIENTE' ||
+                   colNorm === 'CODIGO CLIENTE' ||
+                   colNorm === 'COD. CLIENTE' ||
+                   colNorm === 'COD CLIENTE' ||
+                   colNorm === 'CODIGO';
+        }
+
+        function ehColunaNomeCliente(colNorm) {
+            return colNorm === 'CLIENTE' ||
+                   colNorm === 'NOME' ||
+                   colNorm === 'NOME DO CLIENTE' ||
+                   colNorm === 'RAZAO SOCIAL' ||
+                   colNorm === 'DESTINATARIO';
+        }
+
+        function ehColunaNomeEntrega(colNorm) {
+            return colNorm === 'NOME DA ENTREGA' ||
+                   colNorm === 'NOME ENTREGA' ||
+                   colNorm === 'IDENTIFICACAO DA ENTREGA' ||
+                   colNorm === 'LOCAL DE ENTREGA';
+        }
+
+        function ehColunaEnderecoEntrega(colNorm) {
+            return colNorm === 'ENDERECO ENTREGA' ||
+                   colNorm === 'ENDERECO DE ENTREGA' ||
+                   colNorm === 'ENDERECO' ||
+                   colNorm.includes('ENDERECO') ||
+                   colNorm.includes('LOGRADOURO');
+        }
+
+        function ehColunaCidadeEntrega(colNorm) {
+            return colNorm === 'CIDADE ENTREGA' ||
+                   colNorm === 'CIDADE DE ENTREGA' ||
+                   colNorm === 'CIDADE' ||
+                   colNorm === 'MUNICIPIO' ||
+                   colNorm === 'MUNICIPIO ENTREGA';
+        }
+
+        function ehColunaEstadoEntrega(colNorm) {
+            return colNorm === 'ESTADO ENTREGA' ||
+                   colNorm === 'ESTADO DE ENTREGA' ||
+                   colNorm === 'ESTADO' ||
+                   colNorm === 'UF' ||
+                   colNorm === 'UF ENTREGA';
+        }
+
+        function ehColunaEstradaTerra(colNorm) {
+            return colNorm.includes('ESTRADA TERRA') ||
+                   colNorm.includes('ESTRADA DE TERRA') ||
+                   colNorm.includes('TERRA >5') ||
+                   colNorm.includes('TERRA > 5');
+        }
+
+        function ehColunaCep(colNorm) {
+            return colNorm === 'CEP' || colNorm === 'CEP ENTREGA';
+        }
+
+        function ehColunaTelefone(colNorm) {
+            if (ehColunaIgnorada(colNorm)) return false;
+            return colNorm.includes('FONE') ||
+                   colNorm.includes('TELEFONE') ||
+                   colNorm.includes('CELULAR') ||
+                   colNorm.includes('WHATSAPP');
+        }
+
+        function ehColunaCnpj(colNorm) {
+            return colNorm === 'CNPJ';
+        }
+
+        function ehColunaCpf(colNorm) {
+            return colNorm === 'CPF';
+        }
+
+        function ehCampoLargo(colNorm) {
+            return ehColunaNomeCliente(colNorm) ||
+                   ehColunaNomeEntrega(colNorm) ||
+                   ehColunaEnderecoEntrega(colNorm) ||
+                   ehColunaEstradaTerra(colNorm) ||
+                   colNorm.includes('REFERENCIA') ||
+                   colNorm.includes('OBSERVA') ||
+                   colNorm.includes('COMPLEMENTO');
+        }
+
+        // Busca valor de campo por lista de possíveis nomes normalizados
+        function obterValorPorAliases(registro, aliasesNorm) {
+            for (const alias of aliasesNorm) {
+                for (const chave of Object.keys(registro)) {
+                    if (normalizarTexto(chave) === alias) {
+                        const val = registro[chave];
+                        if (val !== undefined && val !== null && val.toString().trim() !== '') {
+                            return val.toString().trim();
+                        }
+                    }
+                }
+            }
+            return '';
+        }
+
+        // =====================================================================
+        // REGRA: FORMATAR "NOME DA ENTREGA" -> "ENDERECO ENTREGA - CIDADE ENTREGA"
+        // =====================================================================
+        function montarNomeEntregaFormatado(endereco, cidade) {
+            const end = (endereco || '').toString().trim();
+            const cid = (cidade || '').toString().trim();
+            if (end && cid) return `${end} - ${cid}`;
+            if (end) return end;
+            if (cid) return cid;
+            return '';
+        }
+
+        function atualizarNomeEntregaAutomatico() {
+            const inputEndereco = document.getElementById('input-entrega-endereco');
+            const selectCidade = document.getElementById('select-entrega-cidade');
+            const inputNomeEntrega = document.getElementById('input-entrega-nome-entrega');
+
+            if (!inputNomeEntrega) return;
+
+            const endVal = inputEndereco ? inputEndereco.value.trim() : '';
+            const cidVal = selectCidade ? selectCidade.value.trim() : '';
+            inputNomeEntrega.value = montarNomeEntregaFormatado(endVal, cidVal);
+        }
+
+        // =====================================================================
+        // REGRA: ESTRADA TERRA >5KM (CHECKBOX SIM / NÃO)
+        // =====================================================================
+        function ehSimEstradaTerra(valor) {
+            const v = normalizarTexto(valor);
+            return v === 'SIM' || v === 'S' || v === 'TRUE' || v === '1' || v === 'X' || v === 'YES';
+        }
+
+        function formatarEstradaTerraTexto(valor) {
+            return ehSimEstradaTerra(valor) ? 'SIM' : 'NÃO';
+        }
+
+        function atualizarVisualCheckboxEstrada(checkbox) {
+            const badge = document.getElementById('badge-estrada-terra-status');
+            if (!badge) return;
+            if (checkbox.checked) {
+                badge.textContent = 'SIM (Estrada de terra > 5km)';
+                badge.className = 'px-2.5 py-1 rounded-lg bg-trator text-white text-xs font-bold uppercase tracking-wide';
+            } else {
+                badge.textContent = 'NÃO';
+                badge.className = 'px-2.5 py-1 rounded-lg bg-cremeEscuro text-aco/70 text-xs font-bold uppercase tracking-wide';
+            }
+        }
+
+        // =====================================================================
+        // FORMATAÇÃO E MÁSCARAS ADAPTATIVAS (FIXO 10 DÍGITOS / CELULAR 11 DÍGITOS)
+        // =====================================================================
+        function apenasDigitos(valor) {
+            return (valor || '').toString().replace(/\D/g, '');
+        }
+
+        function formatarTelefoneAdaptativo(valor) {
+            const d = apenasDigitos(valor).slice(0, 11);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return `(${d}`;
+            if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+            if (d.length <= 10) {
+                // Formato Fixo: (00) 0000-0000
+                return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+            }
+            // Formato Celular: (00) 00000-0000
+            return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+        }
+
+        function detectarTipoTelefoneLabel(valor) {
+            const d = apenasDigitos(valor);
+            if (d.length === 11) return 'Celular';
+            if (d.length === 10) return 'Fixo';
+            return 'Fixo ou Celular';
+        }
+
+        function formatarCEP(valor) {
+            const d = apenasDigitos(valor).slice(0, 8);
+            if (d.length === 0) return '';
+            if (d.length <= 5) return d;
+            return `${d.slice(0, 5)}-${d.slice(5)}`;
+        }
+
+        function formatarCPF(valor) {
+            const d = apenasDigitos(valor).slice(0, 11);
+            if (d.length === 0) return '';
+            if (d.length <= 3) return d;
+            if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+            if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+            return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+        }
+
+        function formatarCNPJ(valor) {
+            const d = apenasDigitos(valor).slice(0, 14);
+            if (d.length === 0) return '';
+            if (d.length <= 2) return d;
+            if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+            if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+            if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+            return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+        }
+
+        function aplicarFormatacaoPorColuna(coluna, valor) {
+            if (valor === null || valor === undefined) return '';
+            const colNorm = normalizarTexto(coluna);
+            const str = valor.toString().trim();
+
+            if (ehColunaEstradaTerra(colNorm)) return formatarEstradaTerraTexto(str);
+            if (ehColunaTelefone(colNorm)) return formatarTelefoneAdaptativo(str);
+            if (ehColunaCep(colNorm)) return formatarCEP(str);
+            if (ehColunaCnpj(colNorm)) return formatarCNPJ(str);
+            if (ehColunaCpf(colNorm)) return formatarCPF(str);
+            if (colNorm === 'EMAIL' || colNorm === 'E-MAIL') return str.toLowerCase();
+            if (ehColunaEstadoEntrega(colNorm)) return str.toUpperCase();
+            return str;
+        }
+
+        function aplicarMascaraTempoReal(input, colNorm) {
+            if (ehColunaTelefone(colNorm)) {
+                input.value = formatarTelefoneAdaptativo(input.value);
+                const badgeTipo = document.getElementById(`badge-tipo-fone-${input.id}`);
+                if (badgeTipo) {
+                    badgeTipo.textContent = detectarTipoTelefoneLabel(input.value);
+                }
+            } else if (ehColunaCep(colNorm)) {
+                input.value = formatarCEP(input.value);
+            } else if (ehColunaCpf(colNorm)) {
+                input.value = formatarCPF(input.value);
+            } else if (ehColunaCnpj(colNorm)) {
+                input.value = formatarCNPJ(input.value);
+            } else if (colNorm === 'EMAIL' || colNorm === 'E-MAIL') {
+                input.value = input.value.replace(/\s+/g, '').toLowerCase();
+            }
+        }
+
+        function atualizarStatus(texto, tipo = 'ok') {
+            const el = document.getElementById('status-planilha');
+            if (tipo === 'loading') {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span> <span>${texto}</span>`;
+            } else if (tipo === 'erro') {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> <span class="text-red-700">${texto}</span>`;
+            } else {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> <span class="text-aco/80">${texto}</span>`;
+            }
+        }
+
+        // =====================================================================
+        // DESCOBERTA DE GID NAS ABAS DA PLANILHA GOOGLE
+        // =====================================================================
+        function extrairGidPorNomeAba(htmlText, nomesAlvoNormalizados, fallbackGid = null) {
+            const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
+            let match;
+            while ((match = regexAba.exec(htmlText)) !== null) {
+                const nomeAba = normalizarTexto(match[1]);
+                if (nomesAlvoNormalizados.includes(nomeAba)) {
+                    return match[2];
+                }
+            }
+
+            const regexAbaParcial = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
+            while ((match = regexAbaParcial.exec(htmlText)) !== null) {
+                const nomeAba = normalizarTexto(match[1]);
+                if (nomesAlvoNormalizados.some(alvo => nomeAba.includes(alvo))) {
+                    return match[2];
+                }
+            }
+
+            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+            const elementos = doc.querySelectorAll('a, li, button, span');
+            for (const el of elementos) {
+                const textoAba = normalizarTexto(el.textContent);
+                if (nomesAlvoNormalizados.includes(textoAba)) {
+                    const href = el.getAttribute('href') || '';
+                    const idAttr = el.id || '';
+                    const mHref = href.match(/gid=(\d+)/);
+                    const mId = idAttr.match(/(\d+)/);
+                    if (mHref) return mHref[1];
+                    if (mId) return mId[1];
+                }
+            }
+
+            return fallbackGid;
+        }
+
+        // =====================================================================
+        // CARREGAMENTO DA ABA AUXILIAR "MUNICIPIO"
+        // =====================================================================
+        async function buscarMunicipiosPlanilha(gidMunicipio) {
+            if (!gidMunicipio) return;
+            try {
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidMunicipio}&single=true&output=csv`;
+                const resp = await fetch(csvUrl);
+                if (!resp.ok) return;
+                const csvText = await resp.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (parsed.data && parsed.data.length > 0) {
+                    const mapaUnico = new Map();
+                    parsed.data.forEach(row => {
+                        const nomeMun = obterValorPorAliases(row, ['MUNICIPIO', 'CIDADE']);
+                        const estadoUf = obterValorPorAliases(row, ['ESTADO', 'UF', 'SIGLA ESTADO']).toUpperCase();
+                        if (nomeMun) {
+                            const chaveNorm = normalizarTexto(nomeMun);
+                            if (!mapaUnico.has(chaveNorm)) {
+                                mapaUnico.set(chaveNorm, { municipio: nomeMun, estado: estadoUf });
+                            }
+                        }
+                    });
+                    listaMunicipios = Array.from(mapaUnico.values()).sort((a, b) =>
+                        a.municipio.localeCompare(b.municipio, 'pt-BR')
+                    );
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar aba MUNICIPIO:', e);
+            }
+        }
+
+        // =====================================================================
+        // CARREGAMENTO DA ABA AUXILIAR "clientes" (PARA VÍNCULO RÁPIDO)
+        // =====================================================================
+        async function buscarClientesReferencia(gidClientes) {
+            if (!gidClientes) return;
+            try {
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidClientes}&single=true&output=csv`;
+                const resp = await fetch(csvUrl);
+                if (!resp.ok) return;
+                const csvText = await resp.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (parsed.data && parsed.data.length > 0) {
+                    const mapaUnico = new Map();
+                    parsed.data.forEach(row => {
+                        const nome = obterValorPorAliases(row, ['NOME', 'CLIENTE', 'NOME DO CLIENTE']);
+                        const id = obterValorPorAliases(row, ['ID']);
+                        const codigo = obterValorPorAliases(row, ['CODIGO DO CLIENTE', 'CODIGO']);
+                        if (nome) {
+                            const chave = normalizarTexto(nome);
+                            if (!mapaUnico.has(chave)) {
+                                mapaUnico.set(chave, { id, codigo, nome });
+                            }
+                        }
+                    });
+                    listaClientesRef = Array.from(mapaUnico.values()).sort((a, b) =>
+                        a.nome.localeCompare(b.nome, 'pt-BR')
+                    );
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar aba clientes de referência:', e);
+            }
+        }
+
+        // =====================================================================
+        // SINCRONIZAÇÃO PRINCIPAL COM A ABA "Clientes Endereço Entrega"
+        // =====================================================================
+        async function buscarDadosPlanilhaGoogle() {
+            atualizarStatus('Conectando à planilha Google (aba "Clientes Endereço Entrega")...', 'loading');
+            document.getElementById('loading-box').classList.remove('hidden');
+            document.getElementById('tabela-wrapper').classList.add('hidden');
+            document.getElementById('empty-box').classList.add('hidden');
+
+            try {
+                let gidEntrega = null;
+                let gidMunicipio = null;
+                let gidClientes = null;
+
+                try {
+                    const respHtml = await fetch(PUBHTML_URL);
+                    const htmlText = await respHtml.text();
+                    gidEntrega = extrairGidPorNomeAba(
+                        htmlText,
+                        ['CLIENTES ENDERECO ENTREGA', 'CLIENTE ENDERECO ENTREGA', 'ENDERECO ENTREGA'],
+                        null
+                    );
+                    gidMunicipio = extrairGidPorNomeAba(htmlText, ['MUNICIPIO', 'MUNICIPIOS'], null);
+                    gidClientes = extrairGidPorNomeAba(htmlText, ['CLIENTES'], null);
+                } catch (e) {
+                    console.warn('Não foi possível ler o pubhtml diretamente:', e);
+                }
+
+                await Promise.all([
+                    gidMunicipio ? buscarMunicipiosPlanilha(gidMunicipio) : Promise.resolve(),
+                    gidClientes ? buscarClientesReferencia(gidClientes) : Promise.resolve()
+                ]);
+
+                const csvUrl = gidEntrega
+                    ? `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidEntrega}&single=true&output=csv`
+                    : `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?output=csv`;
+
+                const respCsv = await fetch(csvUrl);
+                if (!respCsv.ok) throw new Error('Falha ao baixar CSV da aba "Clientes Endereço Entrega".');
+                const csvText = await respCsv.text();
+
+                const resultado = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                if (resultado.data && resultado.data.length > 0) {
+                    // Filtra removendo a coluna "TIPO FONE ENTREGA"
+                    const colsDetectadas = (resultado.meta.fields || [])
+                        .filter(c => c && c.trim() !== '' && !ehColunaIgnorada(normalizarTexto(c)));
+
+                    colunasPlanilha = colsDetectadas.length > 0 ? [...colsDetectadas] : [...COLUNAS_PADRAO_ENTREGA];
+
+                    listaEntregas = resultado.data.filter(row => {
+                        return Object.values(row).some(val => val && val.toString().trim() !== '');
+                    });
+
+                    // Fallback de municípios caso a aba MUNICIPIO não tenha sido encontrada
+                    if (listaMunicipios.length === 0) {
+                        const mapaFallback = new Map();
+                        listaEntregas.forEach(item => {
+                            const cid = obterValorPorAliases(item, ['CIDADE ENTREGA', 'CIDADE', 'MUNICIPIO']);
+                            const est = obterValorPorAliases(item, ['ESTADO ENTREGA', 'ESTADO', 'UF']).toUpperCase();
+                            if (cid) {
+                                const k = normalizarTexto(cid);
+                                if (!mapaFallback.has(k)) mapaFallback.set(k, { municipio: cid, estado: est });
+                            }
+                        });
+                        listaMunicipios = Array.from(mapaFallback.values()).sort((a, b) =>
+                            a.municipio.localeCompare(b.municipio, 'pt-BR')
+                        );
+                    }
+
+                    salvarNoStorage();
+                    atualizarStatus(
+                        `Sincronizado com "Clientes Endereço Entrega" (${listaEntregas.length} endereços • ${listaMunicipios.length} municípios)`,
+                        'ok'
+                    );
+                    renderizarTabela();
+                } else {
+                    throw new Error('A aba "Clientes Endereço Entrega" retornou vazia.');
+                }
+
+            } catch (erro) {
+                console.error('Erro ao carregar planilha:', erro);
+                atualizarStatus('Modo local ativo (verifique se a aba está publicada na web)', 'erro');
+                if (colunasPlanilha.length === 0) {
+                    colunasPlanilha = [...COLUNAS_PADRAO_ENTREGA];
+                }
+                renderizarTabela();
+            }
+        }
+
+        async function inicializarSistema() {
+            const dadosSalvos = localStorage.getItem(STORAGE_ENTREGAS_KEY);
+            const colsSalvas = localStorage.getItem(STORAGE_COLUNAS_ENTREGAS_KEY);
+            const munSalvos = localStorage.getItem(STORAGE_MUNICIPIOS_KEY);
+            const cliRefSalvos = localStorage.getItem(STORAGE_CLIENTES_REF_KEY);
+
+            if (munSalvos) {
+                try { listaMunicipios = JSON.parse(munSalvos); } catch (e) {}
+            }
+            if (cliRefSalvos) {
+                try { listaClientesRef = JSON.parse(cliRefSalvos); } catch (e) {}
+            }
+
+            if (dadosSalvos && colsSalvas) {
+                try {
+                    listaEntregas = JSON.parse(dadosSalvos);
+                    colunasPlanilha = JSON.parse(colsSalvas).filter(c => !ehColunaIgnorada(normalizarTexto(c)));
+                    atualizarStatus(
+                        `Dados carregados (${listaEntregas.length} endereços de entrega • ${listaMunicipios.length} municípios)`,
+                        'ok'
+                    );
+                    renderizarTabela();
+                    return;
+                } catch (e) {
+                    console.warn('Cache inválido, recarregando da planilha...');
+                }
+            }
+
+            await buscarDadosPlanilhaGoogle();
+        }
+
+        async function recarregarPlanilha() {
+            if (confirm('Deseja recarregar os dados originais da aba "Clientes Endereço Entrega" e "MUNICIPIO"?')) {
+                await buscarDadosPlanilhaGoogle();
+                mostrarToast('Endereços de entrega e municípios sincronizados!');
+            }
+        }
+
+        function salvarNoStorage() {
+            try {
+                localStorage.setItem(STORAGE_ENTREGAS_KEY, JSON.stringify(listaEntregas));
+                localStorage.setItem(STORAGE_COLUNAS_ENTREGAS_KEY, JSON.stringify(colunasPlanilha));
+                localStorage.setItem(STORAGE_MUNICIPIOS_KEY, JSON.stringify(listaMunicipios));
+                localStorage.setItem(STORAGE_CLIENTES_REF_KEY, JSON.stringify(listaClientesRef));
+            } catch (e) {
+                console.warn('Erro ao salvar no localStorage:', e);
+            }
+        }
+
+        // =====================================================================
+        // RENDERIZAÇÃO DA TABELA DE ENDEREÇOS DE ENTREGA
+        // =====================================================================
+        function extrairResumoEntrega(item) {
+            const idVal = obterValorPorAliases(item, ['ID', 'ID CLIENTE', 'ID ENTREGA']);
+            const codigo = obterValorPorAliases(item, ['CODIGO DO CLIENTE', 'CODIGO CLIENTE', 'COD. CLIENTE', 'COD CLIENTE', 'CODIGO']);
+            const cliente = obterValorPorAliases(item, ['CLIENTE', 'NOME', 'NOME DO CLIENTE', 'RAZAO SOCIAL', 'DESTINATARIO']);
+            const endereco = obterValorPorAliases(item, ['ENDERECO ENTREGA', 'ENDERECO DE ENTREGA', 'ENDERECO', 'LOGRADOURO']);
+            const numero = obterValorPorAliases(item, ['NUMERO', 'N', 'NUM']);
+            const bairro = obterValorPorAliases(item, ['BAIRRO', 'BAIRRO ENTREGA', 'DISTRITO', 'SETOR']);
+            const cidade = obterValorPorAliases(item, ['CIDADE ENTREGA', 'CIDADE DE ENTREGA', 'CIDADE', 'MUNICIPIO', 'MUNICIPIO ENTREGA']);
+            const estado = obterValorPorAliases(item, ['ESTADO ENTREGA', 'ESTADO DE ENTREGA', 'ESTADO', 'UF', 'UF ENTREGA']);
+            const nomeEntregaSalvo = obterValorPorAliases(item, ['NOME DA ENTREGA', 'NOME ENTREGA', 'IDENTIFICACAO DA ENTREGA', 'LOCAL DE ENTREGA']);
+            const estradaTerraRaw = obterValorPorAliases(item, ['ESTRADA TERRA >5KM', 'ESTRADA DE TERRA >5KM', 'ESTRADA TERRA', 'ESTRADA DE TERRA']);
+
+            // Garante exibição no padrão "ENDERECO ENTREGA - CIDADE ENTREGA"
+            const nomeEntregaFormatado = nomeEntregaSalvo || montarNomeEntregaFormatado(endereco, cidade);
+
+            let linhaEndereco = endereco;
+            if (linhaEndereco && numero && !linhaEndereco.includes(numero)) {
+                linhaEndereco += `, ${numero}`;
+            }
+            if (bairro) {
+                linhaEndereco = linhaEndereco ? `${linhaEndereco} — ${bairro}` : bairro;
+            }
+
+            const valores = Object.values(item).map(v => (v || '').toString().trim()).filter(Boolean);
+            const tituloPrincipal = cliente || nomeEntregaFormatado || valores[0] || 'Endereço de Entrega';
+
+            return {
+                idVal,
+                codigo,
+                cliente: tituloPrincipal,
+                nomeEntrega: nomeEntregaFormatado,
+                linhaEndereco: linhaEndereco || '—',
+                cidade: cidade || '—',
+                estado: estado || '',
+                estradaTerraSim: ehSimEstradaTerra(estradaTerraRaw)
+            };
+        }
+
+        function renderizarTabela(filtro = '') {
+            const tbody = document.getElementById('tabela-entregas-body');
+            const loadingBox = document.getElementById('loading-box');
+            const tabelaWrapper = document.getElementById('tabela-wrapper');
+            const emptyBox = document.getElementById('empty-box');
+            const contador = document.getElementById('contador-entregas');
+
+            loadingBox.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            const termo = normalizarTexto(filtro);
+
+            const filtrados = listaEntregas
+                .map((item, indexOriginal) => ({ item, indexOriginal }))
+                .filter(({ item }) => {
+                    if (!termo) return true;
+                    return Object.entries(item).some(([chave, val]) => {
+                        if (ehColunaIgnorada(normalizarTexto(chave))) return false;
+                        return normalizarTexto(val).includes(termo);
+                    });
+                });
+
+            contador.textContent = filtrados.length;
+
+            if (filtrados.length === 0) {
+                tabelaWrapper.classList.add('hidden');
+                emptyBox.classList.remove('hidden');
+                return;
+            }
+
+            emptyBox.classList.add('hidden');
+            tabelaWrapper.classList.remove('hidden');
+
+            filtrados.forEach(({ item, indexOriginal }) => {
+                const resumo = extrairResumoEntrega(item);
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-creme/80 transition-colors group';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 sm:px-5 whitespace-nowrap">
+                        <div class="flex flex-col gap-1 items-start">
+                            ${resumo.idVal ? `
+                                <span class="px-2 py-0.5 rounded-md bg-trator/10 border border-trator/20 font-mono font-bold text-trator text-xs">
+                                    ${escapeHTML(resumo.idVal)}
+                                </span>
+                            ` : ''}
+                            ${resumo.codigo ? `
+                                <span class="px-2 py-0.5 rounded-md bg-petroleo/10 border border-petroleo/15 font-mono font-bold text-petroleo text-xs">
+                                    Cód: ${escapeHTML(resumo.codigo)}
+                                </span>
+                            ` : (!resumo.idVal ? '<span class="text-aco/40 font-mono text-xs">—</span>' : '')}
+                        </div>
+                    </td>
+
+                    <td class="py-3.5 px-4 sm:px-5">
+                        <button 
+                            type="button" 
+                            onclick="abrirModalDetalhes(${indexOriginal})"
+                            class="text-left text-aco hover:text-trator font-bold underline decoration-trator/40 hover:decoration-trator underline-offset-4 transition-colors flex items-center gap-1.5"
+                            title="Clique para consultar a ficha completa deste endereço"
+                        >
+                            <span>${escapeHTML(resumo.cliente)}</span>
+                            <i data-lucide="external-link" class="w-3.5 h-3.5 text-trator opacity-70 group-hover:opacity-100 flex-shrink-0"></i>
+                        </button>
+                        ${resumo.nomeEntrega && resumo.nomeEntrega !== resumo.cliente ? `
+                            <span class="block text-xs text-petroleo font-semibold mt-0.5">
+                                Entrega: ${escapeHTML(resumo.nomeEntrega)}
+                            </span>
+                        ` : ''}
+                    </td>
+
+                    <td class="py-3.5 px-4 sm:px-5 text-aco/85 max-w-xs">
+                        <div class="flex items-start gap-1.5">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-trator flex-shrink-0 mt-0.5"></i>
+                            <span class="break-words">${escapeHTML(resumo.linhaEndereco)}</span>
+                        </div>
+                    </td>
+
+                    <td class="py-3.5 px-4 sm:px-5 whitespace-nowrap">
+                        <span class="font-medium text-aco/90">${escapeHTML(resumo.cidade)}</span>
+                        ${resumo.estado ? `
+                            <span class="ml-1.5 inline-block px-2 py-0.5 rounded bg-cremeEscuro border border-aco/15 font-bold text-xs text-aco uppercase">
+                                ${escapeHTML(resumo.estado)}
+                            </span>
+                        ` : ''}
+                    </td>
+
+                    <td class="py-3.5 px-4 sm:px-5 text-center whitespace-nowrap">
+                        ${resumo.estradaTerraSim ? `
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-trator/15 text-trator border border-trator/30 font-bold text-xs">
+                                <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                SIM (&gt;5km)
+                            </span>
+                        ` : `
+                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-cremeEscuro text-aco/60 font-semibold text-xs">
+                                NÃO
+                            </span>
+                        `}
+                    </td>
+
+                    <td class="py-3.5 px-4 sm:px-5 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1.5">
+                            <button 
+                                type="button"
+                                onclick="abrirModalDetalhes(${indexOriginal})"
+                                class="p-2 rounded-lg bg-cremeEscuro hover:bg-aco hover:text-white text-aco transition-colors"
+                                title="Consultar Detalhes da Entrega"
+                            >
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button 
+                                type="button"
+                                onclick="abrirModalFormulario('editar', ${indexOriginal})"
+                                class="p-2 rounded-lg bg-petroleo/10 hover:bg-petroleo text-petroleo hover:text-white transition-colors"
+                                title="Editar Endereço de Entrega"
+                            >
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button 
+                                type="button"
+                                onclick="abrirModalExcluir(${indexOriginal})"
+                                class="p-2 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors"
+                                title="Excluir Endereço"
+                            >
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+        }
+
+        function filtrarEntregas() {
+            const termo = document.getElementById('campo-busca').value;
+            renderizarTabela(termo);
+        }
+
+        // =====================================================================
+        // MODAL 1: CONSULTA COMPLETA DO ENDEREÇO DE ENTREGA
+        // =====================================================================
+        function abrirModalDetalhes(index) {
+            const item = listaEntregas[index];
+            if (!item) return;
+
+            const resumo = extrairResumoEntrega(item);
+
+            document.getElementById('detalhe-id-badge').textContent = `ID: ${resumo.idVal || 'S/N'}`;
+            document.getElementById('detalhe-codigo-badge').textContent = `CÓDIGO: ${resumo.codigo || 'S/N'}`;
+            document.getElementById('detalhe-titulo-nome').textContent = resumo.nomeEntrega || resumo.cliente;
+
+            // Link direto para abrir o endereço no Google Maps
+            const consultaMapa = [resumo.linhaEndereco, resumo.cidade, resumo.estado]
+                .filter(v => v && v !== '—')
+                .join(', ');
+            const btnMapa = document.getElementById('btn-detalhe-mapa');
+            if (consultaMapa) {
+                btnMapa.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(consultaMapa)}`;
+                btnMapa.classList.remove('hidden');
+            } else {
+                btnMapa.classList.add('hidden');
+            }
+
+            const grid = document.getElementById('detalhes-grid');
+            grid.innerHTML = '';
+
+            const chavesExibir = (colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(item))
+                .filter(coluna => !ehColunaIgnorada(normalizarTexto(coluna)));
+
+            chavesExibir.forEach(coluna => {
+                const colNorm = normalizarTexto(coluna);
+                let valorBruto = item[coluna] || '';
+
+                if (ehColunaNomeEntrega(colNorm) && !valorBruto) {
+                    valorBruto = resumo.nomeEntrega;
+                }
+
+                const valorFormatado = aplicarFormatacaoPorColuna(coluna, valorBruto);
+                const cardCampo = document.createElement('div');
+                cardCampo.className = 'bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm';
+                cardCampo.innerHTML = `
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-petroleo mb-1">
+                        ${escapeHTML(coluna)}
+                    </span>
+                    <span class="block text-sm font-semibold text-aco break-words">
+                        ${valorFormatado ? escapeHTML(valorFormatado) : '<span class="text-aco/35 italic font-normal">Não informado</span>'}
+                    </span>
+                `;
+                grid.appendChild(cardCampo);
+            });
+
+            document.getElementById('btn-detalhe-editar').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalFormulario('editar', index);
+            };
+            document.getElementById('btn-detalhe-excluir').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalExcluir(index);
+            };
+
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalDetalhes() {
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =====================================================================
+        // MODAL 2: ADICIONAR NOVO ENDEREÇO / EDITAR ENDEREÇO
+        // =====================================================================
+        function abrirModalFormulario(modo, index = -1) {
+            const modal = document.getElementById('modal-formulario');
+            const titulo = document.getElementById('form-titulo');
+            const subtitulo = document.getElementById('form-subtitulo');
+            const iconBox = document.getElementById('form-icon-box');
+            const inputIndex = document.getElementById('entrega-index-edicao');
+            const inputModo = document.getElementById('entrega-modo-edicao');
+            const containerCampos = document.getElementById('form-campos-dinamicos');
+
+            inputIndex.value = index;
+            inputModo.value = modo;
+            containerCampos.innerHTML = '';
+
+            const itemAtual = (modo === 'editar' && index >= 0) ? listaEntregas[index] : {};
+
+            if (modo === 'novo') {
+                titulo.textContent = 'Novo Endereço de Entrega';
+                subtitulo.textContent = 'Nome da entrega gerado automaticamente: ENDERECO ENTREGA - CIDADE ENTREGA';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="map-pin-plus" class="w-5 h-5"></i>';
+            } else {
+                titulo.textContent = 'Editar Endereço de Entrega';
+                subtitulo.textContent = 'Atualize as informações de entrega e clique em Salvar';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-petroleo text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="pencil" class="w-5 h-5"></i>';
+            }
+
+            // Seletor rápido de cliente cadastrado da aba "clientes"
+            if (listaClientesRef.length > 0) {
+                const divSeletorCliente = document.createElement('div');
+                divSeletorCliente.className = 'sm:col-span-2 bg-petroleo/5 border border-petroleo/20 p-3.5 rounded-xl';
+                let opts = `<option value="">-- Selecionar cliente cadastrado (preenche ID, Código e Nome) --</option>`;
+                listaClientesRef.forEach((c, i) => {
+                    opts += `<option value="${i}">${escapeHTML(c.nome)}${c.id ? ` [${escapeHTML(c.id)}]` : ''}${c.codigo ? ` (Cód: ${escapeHTML(c.codigo)})` : ''}</option>`;
+                });
+                divSeletorCliente.innerHTML = `
+                    <label class="block text-xs font-bold uppercase text-petroleo mb-1">
+                        Vincular Cliente da Base (Opcional)
+                    </label>
+                    <select onchange="preencherDadosClienteVinculado(this.value)" class="w-full px-3 py-2 rounded-lg bg-white border border-aco/20 text-sm font-medium text-aco focus:outline-none focus:border-trator">
+                        ${opts}
+                    </select>
+                `;
+                containerCampos.appendChild(divSeletorCliente);
+            }
+
+            const campos = (colunasPlanilha.length > 0 ? colunasPlanilha : COLUNAS_PADRAO_ENTREGA)
+                .filter(coluna => !ehColunaIgnorada(normalizarTexto(coluna)));
+
+            campos.forEach((coluna, idx) => {
+                const colNorm = normalizarTexto(coluna);
+                const ehId = ehColunaId(colNorm);
+                const ehCod = ehColunaCodigoCliente(colNorm);
+                const ehCliente = ehColunaNomeCliente(colNorm);
+                const ehNomeEntrega = ehColunaNomeEntrega(colNorm);
+                const ehEnderecoEntrega = ehColunaEnderecoEntrega(colNorm);
+                const ehCidadeEntrega = ehColunaCidadeEntrega(colNorm);
+                const ehEstadoEntrega = ehColunaEstadoEntrega(colNorm);
+                const ehEstradaTerra = ehColunaEstradaTerra(colNorm);
+                const ehCep = ehColunaCep(colNorm);
+                const ehTel = ehColunaTelefone(colNorm);
+
+                let valorInicial = (modo === 'editar') ? (itemAtual[coluna] || '') : '';
+
+                const div = document.createElement('div');
+                if (ehCampoLargo(colNorm)) {
+                    div.className = 'sm:col-span-2';
+                }
+
+                let fieldId = `campo-form-${idx}`;
+                if (ehId) fieldId = 'input-entrega-id';
+                else if (ehCod) fieldId = 'input-entrega-codigo';
+                else if (ehCliente) fieldId = 'input-entrega-cliente';
+                else if (ehNomeEntrega) fieldId = 'input-entrega-nome-entrega';
+                else if (ehEnderecoEntrega) fieldId = 'input-entrega-endereco';
+                else if (ehCidadeEntrega) fieldId = 'select-entrega-cidade';
+                else if (ehEstadoEntrega) fieldId = 'input-entrega-estado';
+                else if (ehEstradaTerra) fieldId = 'checkbox-estrada-terra';
+
+                // 1. Campo "NOME DA ENTREGA": formato "ENDERECO ENTREGA - CIDADE ENTREGA"
+                if (ehNomeEntrega) {
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Automático: ENDERECO ENTREGA - CIDADE ENTREGA)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial)}"
+                            readonly
+                            placeholder="ENDERECO ENTREGA - CIDADE ENTREGA"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/80 font-bold text-trator border border-aco/25 text-sm focus:outline-none cursor-not-allowed"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 2. Campo "CIDADE ENTREGA": lista suspensa de cidades da aba MUNICIPIO
+                if (ehCidadeEntrega) {
+                    const valorNorm = normalizarTexto(valorInicial);
+                    const existeNaLista = listaMunicipios.some(m => normalizarTexto(m.municipio) === valorNorm);
+
+                    let opcoesHtml = `<option value="">Selecione a cidade de entrega...</option>`;
+                    if (valorInicial && !existeNaLista) {
+                        opcoesHtml += `<option value="${escapeHTML(valorInicial)}" data-estado="" selected>${escapeHTML(valorInicial)}</option>`;
+                    }
+
+                    listaMunicipios.forEach(item => {
+                        const selecionado = (normalizarTexto(item.municipio) === valorNorm) ? 'selected' : '';
+                        opcoesHtml += `<option value="${escapeHTML(item.municipio)}" data-estado="${escapeHTML(item.estado)}" ${selecionado}>${escapeHTML(item.municipio)}${item.estado ? ` (${escapeHTML(item.estado)})` : ''}</option>`;
+                    });
+
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Lista suspensa - Aba MUNICIPIO)</span>
+                        </label>
+                        <select 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            onchange="aoAlterarCidadeEntrega(this)"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-semibold text-aco focus:outline-none focus:border-trator transition-colors"
+                        >
+                            ${opcoesHtml}
+                        </select>
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 3. Campo "ESTADO ENTREGA" / "ESTADO": preenchido automaticamente pela cidade
+                if (ehEstadoEntrega) {
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Automático)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial.toUpperCase())}"
+                            placeholder="UF"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/70 font-bold uppercase text-petroleo border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 4. Campo "ESTRADA TERRA >5KM": caixa de seleção (checkbox) indicando "SIM"
+                if (ehEstradaTerra) {
+                    const marcado = ehSimEstradaTerra(valorInicial);
+                    div.innerHTML = `
+                        <div class="bg-white p-3.5 rounded-xl border-2 border-aco/20 flex items-center justify-between gap-3 hover:border-trator/60 transition-colors">
+                            <label for="${fieldId}" class="flex items-center gap-3 cursor-pointer select-none flex-1">
+                                <input 
+                                    type="checkbox" 
+                                    id="${fieldId}"
+                                    data-coluna="${escapeHTML(coluna)}"
+                                    data-tipo="checkbox-sim"
+                                    ${marcado ? 'checked' : ''}
+                                    onchange="atualizarVisualCheckboxEstrada(this)"
+                                    class="w-5 h-5 rounded accent-trator cursor-pointer"
+                                >
+                                <div>
+                                    <span class="block text-xs font-bold uppercase text-petroleo">
+                                        ${escapeHTML(coluna)}
+                                    </span>
+                                    <span class="block text-xs text-aco/70">
+                                        Marque a caixa para indicar <strong>SIM</strong> caso a estrada de terra seja maior que 5 km
+                                    </span>
+                                </div>
+                            </label>
+                            <span id="badge-estrada-terra-status" class="${marcado ? 'px-2.5 py-1 rounded-lg bg-trator text-white text-xs font-bold uppercase tracking-wide' : 'px-2.5 py-1 rounded-lg bg-cremeEscuro text-aco/70 text-xs font-bold uppercase tracking-wide'}">
+                                ${marcado ? 'SIM (Estrada de terra > 5km)' : 'NÃO'}
+                            </span>
+                        </div>
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 5. Campo "TELEFONE ENTREGA" (e outros campos de telefone): adaptativo para Fixo (10 dígitos) ou Celular (11 dígitos)
+                if (ehTel) {
+                    valorInicial = formatarTelefoneAdaptativo(valorInicial);
+                    const tipoAtual = detectarTipoTelefoneLabel(valorInicial);
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo">
+                                ${escapeHTML(coluna)}
+                            </label>
+                            <span id="badge-tipo-fone-${fieldId}" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-petroleo/10 text-petroleo">
+                                ${tipoAtual}
+                            </span>
+                        </div>
+                        <input 
+                            type="tel" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            inputmode="tel"
+                            maxlength="15"
+                            value="${escapeHTML(valorInicial)}"
+                            oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"
+                            placeholder="(00) 0000-0000 ou (00) 00000-0000"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white text-aco border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // 6. Demais campos de texto (incluindo ENDERECO ENTREGA)
+                let placeholder = `Digite ${escapeHTML(coluna.toLowerCase())}`;
+                let inputMode = '';
+
+                if (ehCep) {
+                    placeholder = '00000-000';
+                    valorInicial = formatarCEP(valorInicial);
+                    inputMode = 'numeric';
+                } else if (ehColunaCpf(colNorm)) {
+                    placeholder = '000.000.000-00';
+                    valorInicial = formatarCPF(valorInicial);
+                    inputMode = 'numeric';
+                } else if (ehColunaCnpj(colNorm)) {
+                    placeholder = '00.000.000/0000-00';
+                    valorInicial = formatarCNPJ(valorInicial);
+                    inputMode = 'numeric';
+                }
+
+                const obrigatorio = ehCliente || ehEnderecoEntrega;
+                const eventoInput = ehEnderecoEntrega
+                    ? `oninput="atualizarNomeEntregaAutomatico()"`
+                    : `oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"`;
+
+                div.innerHTML = `
+                    <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                        ${escapeHTML(coluna)} ${obrigatorio ? '<span class="text-trator">*</span>' : ''}
+                    </label>
+                    <input 
+                        type="text" 
+                        id="${fieldId}"
+                        data-coluna="${escapeHTML(coluna)}"
+                        ${inputMode ? `inputmode="${inputMode}"` : ''}
+                        value="${escapeHTML(valorInicial)}"
+                        ${obrigatorio ? 'required' : ''}
+                        ${eventoInput}
+                        placeholder="${escapeHTML(placeholder)}"
+                        class="w-full px-3.5 py-2.5 rounded-xl bg-white text-aco border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                    >
+                `;
+                containerCampos.appendChild(div);
+            });
+
+            // Sincronizações automáticas ao abrir o modal
+            const selectCidade = document.getElementById('select-entrega-cidade');
+            const inputEstado = document.getElementById('input-entrega-estado');
+            if (selectCidade && inputEstado && selectCidade.value && !inputEstado.value.trim()) {
+                sincronizarEstadoPorCidade(selectCidade);
+            }
+            atualizarNomeEntregaAutomatico();
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function preencherDadosClienteVinculado(idxStr) {
+            if (idxStr === '') return;
+            const cli = listaClientesRef[parseInt(idxStr, 10)];
+            if (!cli) return;
+
+            const inpId = document.getElementById('input-entrega-id');
+            const inpCod = document.getElementById('input-entrega-codigo');
+            const inpNome = document.getElementById('input-entrega-cliente');
+
+            if (inpId && cli.id) inpId.value = cli.id;
+            if (inpCod && cli.codigo) inpCod.value = cli.codigo;
+            if (inpNome && cli.nome) inpNome.value = cli.nome;
+        }
+
+        function aoAlterarCidadeEntrega(selectEl) {
+            sincronizarEstadoPorCidade(selectEl);
+            atualizarNomeEntregaAutomatico();
+        }
+
+        function sincronizarEstadoPorCidade(selectEl) {
+            const inputEstado = document.getElementById('input-entrega-estado');
+            if (!inputEstado) return;
+
+            const optSelecionada = selectEl.options[selectEl.selectedIndex];
+            let estadoCorrespondente = optSelecionada ? (optSelecionada.getAttribute('data-estado') || '') : '';
+
+            if (!estadoCorrespondente && selectEl.value) {
+                const munNorm = normalizarTexto(selectEl.value);
+                const encontrado = listaMunicipios.find(m => normalizarTexto(m.municipio) === munNorm);
+                if (encontrado) estadoCorrespondente = encontrado.estado || '';
+            }
+
+            if (estadoCorrespondente) {
+                inputEstado.value = estadoCorrespondente.toUpperCase();
+            }
+        }
+
+        function fecharModalFormulario() {
+            const modal = document.getElementById('modal-formulario');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function salvarEntrega(event) {
+            event.preventDefault();
+            const index = parseInt(document.getElementById('entrega-index-edicao').value, 10);
+            const campos = document.querySelectorAll('#form-campos-dinamicos input[data-coluna], #form-campos-dinamicos select[data-coluna]');
+            
+            const registro = (index >= 0 && listaEntregas[index]) ? { ...listaEntregas[index] } : {};
+
+            campos.forEach(campo => {
+                const nomeColuna = campo.getAttribute('data-coluna');
+                if (campo.type === 'checkbox') {
+                    registro[nomeColuna] = campo.checked ? 'SIM' : 'NÃO';
+                } else {
+                    const valorFormatado = aplicarFormatacaoPorColuna(nomeColuna, campo.value.trim());
+                    registro[nomeColuna] = valorFormatado;
+                }
+            });
+
+            // Garante que o campo "Nome da entrega" seja sempre salvo no formato "ENDERECO ENTREGA - CIDADE ENTREGA"
+            const endVal = obterValorPorAliases(registro, ['ENDERECO ENTREGA', 'ENDERECO DE ENTREGA', 'ENDERECO']);
+            const cidVal = obterValorPorAliases(registro, ['CIDADE ENTREGA', 'CIDADE DE ENTREGA', 'CIDADE', 'MUNICIPIO']);
+            const chaveNomeEntrega = Object.keys(registro).find(k => ehColunaNomeEntrega(normalizarTexto(k)));
+            if (chaveNomeEntrega) {
+                registro[chaveNomeEntrega] = montarNomeEntregaFormatado(endVal, cidVal);
+            }
+
+            if (index >= 0) {
+                listaEntregas[index] = registro;
+                mostrarToast('Endereço de entrega atualizado com sucesso!');
+            } else {
+                listaEntregas.unshift(registro);
+                mostrarToast('Novo endereço de entrega cadastrado com sucesso!');
+            }
+
+            salvarNoStorage();
+            fecharModalFormulario();
+            filtrarEntregas();
+            atualizarStatus(`Base atualizada (${listaEntregas.length} endereços de entrega)`, 'ok');
+        }
+
+        // =====================================================================
+        // MODAL 3: EXCLUIR ENDEREÇO DE ENTREGA
+        // =====================================================================
+        function abrirModalExcluir(index) {
+            const item = listaEntregas[index];
+            if (!item) return;
+
+            indiceParaExcluir = index;
+            const resumo = extrairResumoEntrega(item);
+            document.getElementById('excluir-nome-entrega').textContent =
+                `${resumo.cliente}${resumo.nomeEntrega ? ` (${resumo.nomeEntrega})` : ''}`;
+
+            document.getElementById('btn-confirmar-exclusao').onclick = confirmarExclusao;
+
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalExcluir() {
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            indiceParaExcluir = -1;
+        }
+
+        function confirmarExclusao() {
+            if (indiceParaExcluir >= 0 && indiceParaExcluir < listaEntregas.length) {
+                listaEntregas.splice(indiceParaExcluir, 1);
+                salvarNoStorage();
+                filtrarEntregas();
+                atualizarStatus(`Base atualizada (${listaEntregas.length} endereços de entrega)`, 'ok');
+                mostrarToast('Endereço de entrega excluído com sucesso!');
+            }
+            fecharModalExcluir();
+        }
+
+        // =====================================================================
+        // UTILITÁRIOS
+        // =====================================================================
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = mensagem;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 4000);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharModalDetalhes();
+                fecharModalFormulario();
+                fecharModalExcluir();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', inicializarSistema);
+    </script>
+</body>
+</html>
