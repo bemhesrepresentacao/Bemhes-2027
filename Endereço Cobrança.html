@@ -192,7 +192,7 @@
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-trator hover:bg-tratorHover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
                 >
                     <i data-lucide="map-pin-plus" class="w-4 h-4"></i>
-                    <span>Novo Endereço de Cobrança</span>
+                    <span>Novo Endereço Cobrança</span>
                 </button>
             </div>
         </div>
@@ -261,7 +261,7 @@
         <!-- Nota informativa discreta -->
         <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
-            <span>Dica: O campo <strong>Nome da Cobrança</strong> é gerado automaticamente no formato <strong>NOME - CIDADE COBRANCA</strong> conforme você preenche o cliente e a cidade.</span>
+            <span>Dica: O campo <strong>Nome da Cobrança</strong> é gerado automaticamente no formato <strong>NOME - CIDADE COBRANCA</strong>, e o <strong>TELEFONE COBRANCA</strong> adapta a máscara automaticamente para fixo (10 dígitos) ou celular (11 dígitos).</span>
         </p>
 
     </main>
@@ -465,8 +465,8 @@
         const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pubhtml`;
 
         // Chaves de Armazenamento Local
-        const STORAGE_COBRANCA_KEY = 'marcao_da_graxa_endereco_cobranca_db_v2';
-        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_endereco_cobranca_cols_v2';
+        const STORAGE_COBRANCA_KEY = 'marcao_da_graxa_endereco_cobranca_db_v3';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_endereco_cobranca_cols_v3';
         const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v5';
         const STORAGE_CLIENTES_REF_KEY = 'marcao_da_graxa_clientes_ref_v1';
 
@@ -477,7 +477,7 @@
         let listaClientesRef = [];  // { id, codigo, nome }
         let indiceParaExcluir = -1;
 
-        // Colunas padrão esperadas para Endereço de Cobrança
+        // Colunas padrão esperadas para Endereço de Cobrança (sem "TIPO FONE COBRANÇA")
         const COLUNAS_PADRAO = [
             'ID',
             'CODIGO DO CLIENTE',
@@ -504,6 +504,14 @@
                 .replace(/[\u0300-\u036f]/g, '')
                 .trim()
                 .toUpperCase();
+        }
+
+        // Verifica se a coluna é "TIPO FONE COBRANÇA" (deve ser removida/ignorada)
+        function ehColunaTipoFoneCobranca(colNorm) {
+            return colNorm === 'TIPO FONE COBRANCA' ||
+                   colNorm === 'TIPO DE FONE COBRANCA' ||
+                   colNorm === 'TIPO TELEFONE COBRANCA' ||
+                   colNorm === 'TIPO DE TELEFONE COBRANCA';
         }
 
         // Verifica se a coluna corresponde ao campo "Nome da Cobrança"
@@ -593,19 +601,29 @@
         }
 
         // =====================================================================
-        // FUNÇÕES DE FORMATAÇÃO E MÁSCARAS
+        // FUNÇÕES DE FORMATAÇÃO E MÁSCARAS ADAPTÁVEIS (FIXO OU CELULAR)
         // =====================================================================
         function apenasDigitos(valor) {
             return (valor || '').toString().replace(/\D/g, '');
         }
 
-        function formatarTelefoneAuto(valor) {
+        // Adapta automaticamente:
+        // - Até 10 dígitos: Telefone Fixo -> (XX) XXXX-XXXX
+        // - 11 dígitos:     Celular       -> (XX) XXXXX-XXXX
+        function formatarTelefoneAdaptavel(valor) {
             const d = apenasDigitos(valor).slice(0, 11);
             if (d.length === 0) return '';
             if (d.length <= 2) return `(${d}`;
             if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
             if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
             return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+        }
+
+        function detectarTipoTelefoneLabel(valor) {
+            const d = apenasDigitos(valor);
+            if (d.length === 11) return 'Celular';
+            if (d.length === 10) return 'Fixo';
+            return 'Fixo / Celular';
         }
 
         function formatarCEP(valor) {
@@ -640,7 +658,7 @@
             const str = valor.toString().trim();
 
             if (colNorm.includes('FONE') || colNorm.includes('TEL') || colNorm.includes('CELULAR')) {
-                return formatarTelefoneAuto(str);
+                return formatarTelefoneAdaptavel(str);
             }
             if (colNorm.includes('CEP')) return formatarCEP(str);
             if (colNorm === 'CNPJ') return formatarCNPJ(str);
@@ -652,7 +670,14 @@
 
         function aplicarMascaraTempoReal(input, colNorm) {
             if (colNorm.includes('FONE') || colNorm.includes('TEL') || colNorm.includes('CELULAR')) {
-                input.value = formatarTelefoneAuto(input.value);
+                input.value = formatarTelefoneAdaptavel(input.value);
+                const badgeId = input.getAttribute('data-badge-tipo-fone');
+                if (badgeId) {
+                    const badgeEl = document.getElementById(badgeId);
+                    if (badgeEl) {
+                        badgeEl.textContent = `(${detectarTipoTelefoneLabel(input.value)})`;
+                    }
+                }
             } else if (colNorm.includes('CEP')) {
                 input.value = formatarCEP(input.value);
             } else if (colNorm === 'CPF') {
@@ -854,7 +879,9 @@
                     transformHeader: h => h.trim()
                 });
 
-                const colsDetectadas = (resultado.meta.fields || []).filter(c => c && c.trim() !== '');
+                // Filtra colunas detectadas removendo "TIPO FONE COBRANÇA"
+                const colsDetectadas = (resultado.meta.fields || [])
+                    .filter(c => c && c.trim() !== '' && !ehColunaTipoFoneCobranca(normalizarTexto(c)));
                 
                 if (colsDetectadas.length > 0) {
                     colunasPlanilha = [...colsDetectadas];
@@ -877,6 +904,13 @@
                 listaCobranca = (resultado.data || [])
                     .filter(row => Object.values(row).some(val => val && val.toString().trim() !== ''))
                     .map(row => {
+                        // Remove propriedade "TIPO FONE COBRANÇA" caso exista no CSV
+                        Object.keys(row).forEach(k => {
+                            if (ehColunaTipoFoneCobranca(normalizarTexto(k))) {
+                                delete row[k];
+                            }
+                        });
+
                         // Preenche automaticamente "Nome da Cobrança" se estiver vazio na planilha
                         const chaveNomeCob = Object.keys(row).find(k => ehColunaNomeCobranca(normalizarTexto(k))) || 'Nome da Cobrança';
                         if (!row[chaveNomeCob] || row[chaveNomeCob].toString().trim() === '') {
@@ -937,7 +971,7 @@
             if (dadosSalvos && colsSalvas) {
                 try {
                     listaCobranca = JSON.parse(dadosSalvos);
-                    colunasPlanilha = JSON.parse(colsSalvas);
+                    colunasPlanilha = JSON.parse(colsSalvas).filter(c => !ehColunaTipoFoneCobranca(normalizarTexto(c)));
                     atualizarStatus(
                         `Dados carregados — Aba "Clientes Endereço Cobrança" (${listaCobranca.length} registros)`,
                         'ok'
@@ -1036,9 +1070,9 @@
                 .map((registro, indexOriginal) => ({ registro, indexOriginal }))
                 .filter(({ registro }) => {
                     if (!termo) return true;
-                    return Object.values(registro).some(val =>
-                        normalizarTexto(val).includes(termo)
-                    );
+                    return Object.entries(registro)
+                        .filter(([k]) => !ehColunaTipoFoneCobranca(normalizarTexto(k)))
+                        .some(([, val]) => normalizarTexto(val).includes(termo));
                 });
 
             contador.textContent = filtrados.length;
@@ -1162,7 +1196,8 @@
             const grid = document.getElementById('detalhes-grid');
             grid.innerHTML = '';
 
-            const chavesExibir = colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(registro);
+            const chavesExibir = (colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(registro))
+                .filter(col => !ehColunaTipoFoneCobranca(normalizarTexto(col)));
 
             chavesExibir.forEach(coluna => {
                 const colNorm = normalizarTexto(coluna);
@@ -1267,7 +1302,8 @@
                 containerCampos.appendChild(boxAtalho);
             }
 
-            const campos = colunasPlanilha.length > 0 ? colunasPlanilha : COLUNAS_PADRAO;
+            const campos = (colunasPlanilha.length > 0 ? colunasPlanilha : COLUNAS_PADRAO)
+                .filter(col => !ehColunaTipoFoneCobranca(normalizarTexto(col)));
 
             campos.forEach((coluna, idx) => {
                 const colNorm = normalizarTexto(coluna);
@@ -1380,6 +1416,34 @@
                     return;
                 }
 
+                // Campo TELEFONE COBRANCA adaptável para fixo ou celular
+                if (ehTelefone) {
+                    valorInicial = formatarTelefoneAdaptavel(valorInicial);
+                    const badgeId = `badge-tipo-fone-${idx}`;
+                    const labelTipoInicial = detectarTipoTelefoneLabel(valorInicial);
+
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1 flex items-center justify-between">
+                            <span>${escapeHTML(coluna)}</span>
+                            <span id="${badgeId}" class="text-[10px] font-semibold text-trator normal-case">(${labelTipoInicial})</span>
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            data-badge-tipo-fone="${badgeId}"
+                            inputmode="tel"
+                            maxlength="15"
+                            value="${escapeHTML(valorInicial)}"
+                            oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"
+                            placeholder="(00) 0000-0000 ou (00) 00000-0000"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white text-aco border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
                 let tipoInput = 'text';
                 let placeholder = `Digite ${escapeHTML(coluna.toLowerCase())}`;
                 let inputMode = '';
@@ -1388,10 +1452,6 @@
                     tipoInput = 'email';
                     placeholder = 'cobranca@empresa.com.br';
                     inputMode = 'email';
-                } else if (ehTelefone) {
-                    placeholder = '(00) 00000-0000';
-                    valorInicial = formatarTelefoneAuto(valorInicial);
-                    inputMode = 'tel';
                 } else if (ehCampoCep) {
                     placeholder = '00000-000';
                     valorInicial = formatarCEP(valorInicial);
@@ -1526,10 +1586,19 @@
             
             const registro = (index >= 0 && listaCobranca[index]) ? { ...listaCobranca[index] } : {};
 
+            // Remove "TIPO FONE COBRANÇA" caso exista de registros antigos
+            Object.keys(registro).forEach(k => {
+                if (ehColunaTipoFoneCobranca(normalizarTexto(k))) {
+                    delete registro[k];
+                }
+            });
+
             campos.forEach(campo => {
                 const nomeColuna = campo.getAttribute('data-coluna');
-                const valorFormatado = aplicarFormatacaoPorColuna(nomeColuna, campo.value.trim());
-                registro[nomeColuna] = valorFormatado;
+                if (!ehColunaTipoFoneCobranca(normalizarTexto(nomeColuna))) {
+                    const valorFormatado = aplicarFormatacaoPorColuna(nomeColuna, campo.value.trim());
+                    registro[nomeColuna] = valorFormatado;
+                }
             });
 
             // Garante que "Nome da Cobrança" sempre esteja salvo no formato "NOME - CIDADE COBRANCA"
