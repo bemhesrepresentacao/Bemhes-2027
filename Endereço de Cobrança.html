@@ -205,7 +205,7 @@
                     type="text" 
                     id="campo-busca" 
                     oninput="filtrarRegistros()"
-                    placeholder="Buscar por ID, código do cliente, nome, logradouro, bairro, CEP, cidade ou estado..." 
+                    placeholder="Buscar por ID, código do cliente, nome, nome da cobrança, endereço, bairro, CEP ou cidade..." 
                     class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-creme/60 border border-aco/20 text-sm text-aco placeholder-aco/50 focus:outline-none focus:border-petroleo focus:bg-white transition-colors"
                 >
             </div>
@@ -235,7 +235,7 @@
                     <thead>
                         <tr class="bg-aco text-creme font-display uppercase text-sm tracking-wider border-b-2 border-trator">
                             <th class="py-4 px-4 sm:px-5 whitespace-nowrap">ID / Cód.</th>
-                            <th class="py-4 px-4 sm:px-5">Cliente</th>
+                            <th class="py-4 px-4 sm:px-5">Cliente / Nome da Cobrança</th>
                             <th class="py-4 px-4 sm:px-5">Endereço de Cobrança</th>
                             <th class="py-4 px-4 sm:px-5">Bairro / CEP</th>
                             <th class="py-4 px-4 sm:px-5">Cidade / UF</th>
@@ -261,7 +261,7 @@
         <!-- Nota informativa discreta -->
         <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
-            <span>Dica: Clique no nome do cliente para visualizar a ficha completa de cobrança (logradouro, número, complemento, bairro, CEP, município, UF e contatos). Ao cadastrar ou editar, o <strong>ESTADO</strong> é vinculado automaticamente à <strong>CIDADE</strong> (aba <strong>MUNICIPIO</strong>).</span>
+            <span>Dica: O campo <strong>Nome da Cobrança</strong> é gerado automaticamente no formato <strong>NOME - CIDADE COBRANCA</strong> conforme você preenche o cliente e a cidade.</span>
         </p>
 
     </main>
@@ -465,8 +465,8 @@
         const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pubhtml`;
 
         // Chaves de Armazenamento Local
-        const STORAGE_COBRANCA_KEY = 'marcao_da_graxa_endereco_cobranca_db_v1';
-        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_endereco_cobranca_cols_v1';
+        const STORAGE_COBRANCA_KEY = 'marcao_da_graxa_endereco_cobranca_db_v2';
+        const STORAGE_COLUNAS_KEY = 'marcao_da_graxa_endereco_cobranca_cols_v2';
         const STORAGE_MUNICIPIOS_KEY = 'marcao_da_graxa_municipios_v5';
         const STORAGE_CLIENTES_REF_KEY = 'marcao_da_graxa_clientes_ref_v1';
 
@@ -474,20 +474,21 @@
         let listaCobranca = [];
         let colunasPlanilha = [];
         let listaMunicipios = [];   // { municipio, estado }
-        let listaClientesRef = [];  // { id, codigo, nome } para preenchimento rápido opcional
+        let listaClientesRef = [];  // { id, codigo, nome }
         let indiceParaExcluir = -1;
 
-        // Colunas padrão esperadas para Endereço de Cobrança (usadas como fallback caso a planilha esteja inacessível)
+        // Colunas padrão esperadas para Endereço de Cobrança
         const COLUNAS_PADRAO = [
             'ID',
             'CODIGO DO CLIENTE',
             'NOME',
+            'NOME DA COBRANÇA',
             'LOGRADOURO',
             'NUMERO',
             'COMPLEMENTO',
             'BAIRRO',
             'CEP',
-            'CIDADE',
+            'CIDADE COBRANCA',
             'ESTADO',
             'PONTO DE REFERENCIA',
             'TELEFONE COBRANCA',
@@ -505,7 +506,14 @@
                 .toUpperCase();
         }
 
-        // Busca flexível de campo em um objeto de linha da planilha (suporta variações de nomes de colunas)
+        // Verifica se a coluna corresponde ao campo "Nome da Cobrança"
+        function ehColunaNomeCobranca(colNorm) {
+            return colNorm === 'NOME DA COBRANCA' ||
+                   colNorm === 'NOME COBRANCA' ||
+                   colNorm === 'NOME DE COBRANCA';
+        }
+
+        // Busca flexível de campo em um objeto de linha da planilha
         function obterValorPorAliases(registro, aliases) {
             if (!registro) return '';
             const chaves = Object.keys(registro);
@@ -550,6 +558,38 @@
             const palavras = limpo.split(/\s+/).filter(Boolean);
             const iniciais = palavras.map(palavra => palavra.charAt(0)).join('');
             return `MCB-${iniciais}`;
+        }
+
+        // =====================================================================
+        // REGRA DE GERAÇÃO AUTOMÁTICA DO "Nome da Cobrança"
+        // Formato: "NOME - CIDADE COBRANCA"
+        // =====================================================================
+        function gerarNomeCobrancaFormatado(nome, cidadeCobranca) {
+            const nomeLimpo = (nome || '').toString().trim();
+            const cidadeLimpa = (cidadeCobranca || '').toString().trim();
+
+            if (nomeLimpo && cidadeLimpa) {
+                return `${nomeLimpo} - ${cidadeLimpa}`;
+            }
+            if (nomeLimpo) {
+                return nomeLimpo;
+            }
+            if (cidadeLimpa) {
+                return cidadeLimpa;
+            }
+            return '';
+        }
+
+        function atualizarNomeCobrancaAutomatico() {
+            const inputNome = document.getElementById('input-campo-nome');
+            const campoCidade = document.getElementById('select-campo-cidade');
+            const inputNomeCobranca = document.getElementById('input-campo-nome-cobranca');
+
+            if (!inputNomeCobranca) return;
+
+            const nomeVal = inputNome ? inputNome.value : '';
+            const cidadeVal = campoCidade ? campoCidade.value : '';
+            inputNomeCobranca.value = gerarNomeCobrancaFormatado(nomeVal, cidadeVal);
         }
 
         // =====================================================================
@@ -673,12 +713,10 @@
         }
 
         function encontrarGidAba(abas, nomesAlvoNormalizados, fallbackGid = null) {
-            // Busca correspondência exata primeiro
             for (const alvo of nomesAlvoNormalizados) {
                 const exata = abas.find(a => a.nomeNorm === alvo);
                 if (exata) return exata.gid;
             }
-            // Busca parcial caso haja variação de espaços/hífens
             for (const alvo of nomesAlvoNormalizados) {
                 const parcial = abas.find(a => a.nomeNorm.includes(alvo));
                 if (parcial) return parcial.gid;
@@ -796,7 +834,6 @@
                     console.warn('Não foi possível ler o pubhtml diretamente:', e);
                 }
 
-                // Carrega municípios e referência de clientes em paralelo
                 await Promise.all([
                     gidMunicipio ? buscarMunicipiosPlanilha(gidMunicipio) : Promise.resolve(),
                     gidClientes ? buscarClientesReferencia(gidClientes) : Promise.resolve()
@@ -821,19 +858,40 @@
                 
                 if (colsDetectadas.length > 0) {
                     colunasPlanilha = [...colsDetectadas];
+                    // Garante que a coluna "Nome da Cobrança" exista caso não esteja explicitamente no cabeçalho
+                    if (!colunasPlanilha.some(c => ehColunaNomeCobranca(normalizarTexto(c)))) {
+                        const idxNome = colunasPlanilha.findIndex(c => {
+                            const cn = normalizarTexto(c);
+                            return cn === 'NOME' || cn === 'CLIENTE' || cn === 'NOME DO CLIENTE';
+                        });
+                        if (idxNome >= 0) {
+                            colunasPlanilha.splice(idxNome + 1, 0, 'Nome da Cobrança');
+                        } else {
+                            colunasPlanilha.unshift('Nome da Cobrança');
+                        }
+                    }
                 } else {
                     colunasPlanilha = [...COLUNAS_PADRAO];
                 }
 
-                listaCobranca = (resultado.data || []).filter(row => {
-                    return Object.values(row).some(val => val && val.toString().trim() !== '');
-                });
+                listaCobranca = (resultado.data || [])
+                    .filter(row => Object.values(row).some(val => val && val.toString().trim() !== ''))
+                    .map(row => {
+                        // Preenche automaticamente "Nome da Cobrança" se estiver vazio na planilha
+                        const chaveNomeCob = Object.keys(row).find(k => ehColunaNomeCobranca(normalizarTexto(k))) || 'Nome da Cobrança';
+                        if (!row[chaveNomeCob] || row[chaveNomeCob].toString().trim() === '') {
+                            const nomeVal = obterValorPorAliases(row, ['NOME', 'CLIENTE', 'NOME DO CLIENTE', 'RAZAO SOCIAL']);
+                            const cidadeVal = obterValorPorAliases(row, ['CIDADE COBRANCA', 'CIDADE', 'MUNICIPIO']);
+                            row[chaveNomeCob] = gerarNomeCobrancaFormatado(nomeVal, cidadeVal);
+                        }
+                        return row;
+                    });
 
                 // Fallback de municípios caso a aba MUNICIPIO não tenha retornado dados
                 if (listaMunicipios.length === 0) {
                     const mapaFallback = new Map();
                     listaCobranca.forEach(r => {
-                        const cid = obterValorPorAliases(r, ['CIDADE', 'MUNICIPIO']);
+                        const cid = obterValorPorAliases(r, ['CIDADE COBRANCA', 'CIDADE', 'MUNICIPIO']);
                         const est = obterValorPorAliases(r, ['ESTADO', 'UF']).toUpperCase();
                         if (cid) {
                             const k = normalizarTexto(cid);
@@ -940,13 +998,17 @@
 
             const bairro = obterValorPorAliases(registro, ['BAIRRO', 'DISTRITO']);
             const cep = formatarCEP(obterValorPorAliases(registro, ['CEP', 'CEP COBRANCA']));
-            const cidade = obterValorPorAliases(registro, ['CIDADE', 'MUNICIPIO', 'CIDADE COBRANCA']);
+            const cidade = obterValorPorAliases(registro, ['CIDADE COBRANCA', 'CIDADE', 'MUNICIPIO']);
             const estado = obterValorPorAliases(registro, ['ESTADO', 'UF', 'ESTADO COBRANCA']).toUpperCase();
+
+            const nomeCobrancaSalvo = obterValorPorAliases(registro, ['NOME DA COBRANCA', 'NOME COBRANCA', 'NOME DE COBRANCA']);
+            const nomeCobranca = nomeCobrancaSalvo || gerarNomeCobrancaFormatado(nome, cidade);
 
             return {
                 idVal,
                 codigo,
                 nome,
+                nomeCobranca,
                 enderecoCompleto,
                 bairro,
                 cep,
@@ -1019,6 +1081,12 @@
                             <span>${escapeHTML(info.nome || 'Cliente não identificado')}</span>
                             <i data-lucide="external-link" class="w-3.5 h-3.5 text-trator opacity-70 group-hover:opacity-100 flex-shrink-0"></i>
                         </button>
+                        ${info.nomeCobranca ? `
+                            <div class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-ambar/15 border border-ambar/30 text-[11px] font-bold text-aco/85">
+                                <i data-lucide="tag" class="w-3 h-3 text-trator"></i>
+                                <span>${escapeHTML(info.nomeCobranca)}</span>
+                            </div>
+                        ` : ''}
                     </td>
                     <td class="py-3.5 px-4 sm:px-5 text-aco/90">
                         <div class="flex items-start gap-1.5">
@@ -1089,7 +1157,7 @@
 
             document.getElementById('detalhe-id-badge').textContent = `ID: ${info.idVal || 'S/N'}`;
             document.getElementById('detalhe-codigo-badge').textContent = `CÓDIGO: ${info.codigo || 'S/N'}`;
-            document.getElementById('detalhe-titulo-nome').textContent = info.nome || 'Endereço de Cobrança';
+            document.getElementById('detalhe-titulo-nome').textContent = info.nomeCobranca || info.nome || 'Endereço de Cobrança';
 
             const grid = document.getElementById('detalhes-grid');
             grid.innerHTML = '';
@@ -1097,13 +1165,23 @@
             const chavesExibir = colunasPlanilha.length > 0 ? colunasPlanilha : Object.keys(registro);
 
             chavesExibir.forEach(coluna => {
-                const valorBruto = obterValorCampo(registro, coluna) || registro[coluna] || '';
-                const valorFormatado = aplicarFormatacaoPorColuna(coluna, valorBruto);
                 const colNorm = normalizarTexto(coluna);
+                let valorBruto = obterValorCampo(registro, coluna) || registro[coluna] || '';
+                if (ehColunaNomeCobranca(colNorm) && !valorBruto) {
+                    valorBruto = info.nomeCobranca;
+                }
+                const valorFormatado = aplicarFormatacaoPorColuna(coluna, valorBruto);
 
                 const cardCampo = document.createElement('div');
                 cardCampo.className = 'bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm';
-                if (colNorm.includes('ENDERECO') || colNorm.includes('LOGRADOURO') || colNorm.includes('REFERENCIA') || colNorm.includes('OBSERVA') || colNorm === 'NOME') {
+                if (
+                    ehColunaNomeCobranca(colNorm) ||
+                    colNorm.includes('ENDERECO') ||
+                    colNorm.includes('LOGRADOURO') ||
+                    colNorm.includes('REFERENCIA') ||
+                    colNorm.includes('OBSERVA') ||
+                    colNorm === 'NOME'
+                ) {
                     cardCampo.classList.add('sm:col-span-2');
                 }
 
@@ -1196,6 +1274,7 @@
                 const ehCampoId = (colNorm === 'ID' || colNorm === 'ID CLIENTE');
                 const ehCampoCodigo = (colNorm === 'CODIGO DO CLIENTE' || colNorm === 'CODIGO' || colNorm === 'COD CLIENTE');
                 const ehCampoNome = (colNorm === 'NOME' || colNorm === 'CLIENTE' || colNorm === 'NOME DO CLIENTE');
+                const ehCampoNomeCobranca = ehColunaNomeCobranca(colNorm);
                 const ehCampoCidade = (colNorm === 'CIDADE' || colNorm === 'MUNICIPIO' || colNorm === 'CIDADE COBRANCA');
                 const ehCampoEstado = (colNorm === 'ESTADO' || colNorm === 'UF' || colNorm === 'ESTADO COBRANCA');
                 const ehCampoCep = colNorm.includes('CEP');
@@ -1211,6 +1290,7 @@
 
                 const div = document.createElement('div');
                 if (
+                    ehCampoNomeCobranca ||
                     colNorm.includes('ENDERECO') ||
                     colNorm.includes('LOGRADOURO') ||
                     colNorm.includes('REFERENCIA') ||
@@ -1224,10 +1304,31 @@
                 if (ehCampoId) fieldId = 'input-campo-id';
                 else if (ehCampoCodigo) fieldId = 'input-campo-codigo';
                 else if (ehCampoNome) fieldId = 'input-campo-nome';
+                else if (ehCampoNomeCobranca) fieldId = 'input-campo-nome-cobranca';
                 else if (ehCampoCidade) fieldId = 'select-campo-cidade';
                 else if (ehCampoEstado) fieldId = 'input-campo-estado';
 
-                // Campo CIDADE vinculado à aba MUNICIPIO
+                // Campo "Nome da Cobrança" gerado automaticamente no formato "NOME - CIDADE COBRANCA"
+                if (ehCampoNomeCobranca) {
+                    div.innerHTML = `
+                        <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                            ${escapeHTML(coluna)} <span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Automático: NOME - CIDADE COBRANCA)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="${fieldId}"
+                            data-coluna="${escapeHTML(coluna)}"
+                            value="${escapeHTML(valorInicial)}"
+                            readonly
+                            placeholder="NOME - CIDADE COBRANCA"
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-cremeEscuro/70 font-bold text-petroleo border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors cursor-not-allowed"
+                        >
+                    `;
+                    containerCampos.appendChild(div);
+                    return;
+                }
+
+                // Campo CIDADE / CIDADE COBRANCA vinculado à aba MUNICIPIO
                 if (ehCampoCidade && listaMunicipios.length > 0) {
                     const valorNorm = normalizarTexto(valorInicial);
                     const existeNaLista = listaMunicipios.some(m => normalizarTexto(m.municipio) === valorNorm);
@@ -1249,7 +1350,7 @@
                         <select 
                             id="${fieldId}"
                             data-coluna="${escapeHTML(coluna)}"
-                            onchange="sincronizarEstadoPorCidade(this)"
+                            onchange="aoAlterarCidadeCobranca(this)"
                             class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-sm font-semibold text-aco focus:outline-none focus:border-trator transition-colors"
                         >
                             ${opcoesHtml}
@@ -1311,9 +1412,12 @@
                     ? 'bg-cremeEscuro/70 font-mono font-bold text-trator'
                     : 'bg-white text-aco';
 
-                const eventoInput = ehCampoNome && modo === 'novo'
-                    ? `oninput="atualizarIdAutomaticoPorNome(this.value)"`
-                    : `oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"`;
+                let eventoInput = `oninput="aplicarMascaraTempoReal(this, '${escapeHTML(colNorm)}')"`;
+                if (ehCampoNome) {
+                    eventoInput = `oninput="aoAlterarNomeCliente(this.value)"`;
+                } else if (ehCampoCidade) {
+                    eventoInput = `oninput="atualizarNomeCobrancaAutomatico()"`;
+                }
 
                 div.innerHTML = `
                     <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
@@ -1340,9 +1444,25 @@
                 sincronizarEstadoPorCidade(selectCidade);
             }
 
+            // Atualiza "Nome da Cobrança" automaticamente ao abrir o formulário
+            atualizarNomeCobrancaAutomatico();
+
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             lucide.createIcons();
+        }
+
+        function aoAlterarNomeCliente(nomeDigitado) {
+            const modo = document.getElementById('registro-modo-edicao').value;
+            if (modo === 'novo') {
+                atualizarIdAutomaticoPorNome(nomeDigitado);
+            }
+            atualizarNomeCobrancaAutomatico();
+        }
+
+        function aoAlterarCidadeCobranca(selectEl) {
+            sincronizarEstadoPorCidade(selectEl);
+            atualizarNomeCobrancaAutomatico();
         }
 
         function preencherDadosClienteBase(indexRef) {
@@ -1363,6 +1483,8 @@
             if (inputId) {
                 inputId.value = cli.id || gerarIdPadraoMCB(cli.nome);
             }
+
+            atualizarNomeCobrancaAutomatico();
         }
 
         function sincronizarEstadoPorCidade(selectEl) {
@@ -1410,8 +1532,13 @@
                 registro[nomeColuna] = valorFormatado;
             });
 
+            // Garante que "Nome da Cobrança" sempre esteja salvo no formato "NOME - CIDADE COBRANCA"
+            const nomeCliente = obterValorPorAliases(registro, ['NOME', 'CLIENTE', 'NOME DO CLIENTE']);
+            const cidadeCobranca = obterValorPorAliases(registro, ['CIDADE COBRANCA', 'CIDADE', 'MUNICIPIO']);
+            const chaveNomeCob = Object.keys(registro).find(k => ehColunaNomeCobranca(normalizarTexto(k))) || 'Nome da Cobrança';
+            registro[chaveNomeCob] = gerarNomeCobrancaFormatado(nomeCliente, cidadeCobranca);
+
             if (modo === 'novo') {
-                const nomeCliente = obterValorPorAliases(registro, ['NOME', 'CLIENTE', 'NOME DO CLIENTE']);
                 const idGerado = gerarIdPadraoMCB(nomeCliente);
                 const chaveId = Object.keys(registro).find(k => normalizarTexto(k) === 'ID' || normalizarTexto(k) === 'ID CLIENTE');
                 
@@ -1443,7 +1570,7 @@
 
             indiceParaExcluir = index;
             const info = extrairResumoCobranca(registro);
-            const nomeExibir = info.nome || 'este cliente';
+            const nomeExibir = info.nomeCobranca || info.nome || 'este cliente';
             document.getElementById('excluir-nome-cliente').textContent = info.idVal ? `${info.idVal} - ${nomeExibir}` : nomeExibir;
 
             document.getElementById('btn-confirmar-exclusao').onclick = confirmarExclusao;
