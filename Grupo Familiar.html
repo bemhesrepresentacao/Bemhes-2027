@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEMHES 2027 — Portal de Grupo Familiar</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes Google: Oswald (Títulos Industriais) e Inter (Textos e Interface) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PapaParse para leitura precisa de CSV da planilha publicada -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Configuração de Cores e Fontes Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        creme: '#F7F3EA',        /* Fundo exato da borda da logo */
+                        cremeEscuro: '#ECE5D5',  /* Tom secundário de superfície */
+                        trator: '#D9531E',       /* Laranja vibrante do trator */
+                        tratorHover: '#B84214',  /* Laranja escuro para hover */
+                        petroleo: '#1E4863',     /* Azul do macacão e tipografia */
+                        petroleoHover: '#153448',/* Azul escuro para hover */
+                        aco: '#1C2226',          /* Cinza aço escuro das engrenagens */
+                        ambar: '#E08E2B',        /* Dourado/âmbar da graxa e engrenagens */
+                    },
+                    fontFamily: {
+                        display: ['Oswald', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Padrão sutil de textura industrial no fundo creme */
+        body {
+            background-color: #F7F3EA;
+            background-image: radial-gradient(#d8cfbc 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #1C2226;
+        }
+
+        /* Estilo de borda chanfrada/robusta */
+        .card-industrial {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom-width: 6px;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ECE5D5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E4863;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D9531E;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-trator selection:text-white">
+
+    <!-- ===================================================================== -->
+    <!-- 1. CABEÇALHO (HEADER) - MANTIDO ORIGINAL                               -->
+    <!-- ===================================================================== -->
+    <header class="w-full bg-aco text-white shadow-lg border-b-4 border-trator">
+        <!-- Faixa Institucional Superior -->
+        <div class="bg-petroleo/90 border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-creme/90 gap-2">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-ambar animate-pulse"></span>
+                    <span>BEMHES 2027 — Soluções em Lubrificação Industrial, Agrícola e Automotiva</span>
+                </div>
+                <div class="flex items-center gap-4 text-creme/80">
+                    <span id="data-atual" class="hidden md:inline"></span>
+                    <span class="px-2 py-0.5 rounded bg-aco/60 text-ambar font-semibold text-xs border border-ambar/30">
+                        Sistema Operacional
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal do Cabeçalho com a Logo Intacta -->
+        <div class="bg-creme text-aco py-6 sm:py-8 px-4 sm:px-6 border-b border-aco/15">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- LOGO ORIGINAL MANTIDA 100% SEM ALTERAÇÃO -->
+                <div class="flex-shrink-0 flex justify-center">
+                    <div class="rounded-2xl overflow-hidden shadow-md border-2 border-aco/15 bg-[#F7F3EA] p-1">
+                        <!-- TAMANHO DA LOGO: ALTERE AQUI -->
+                        <img 
+                            src="MARCAO DA GRAXA.jpg" 
+                            alt="Logo Oficial Marcão da Graxa" 
+                            style="width: 100px; height: auto;"
+                            class="object-contain block rounded-xl"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/F7F3EA/1C2226?text=MARCÃO+DA+GRAXA.jpg';"
+                        >
+                    </div>
+                </div>
+
+                <!-- Título e Apresentação do Portal -->
+                <div class="text-center md:text-left flex-1 md:pl-6">
+                    <h4 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-aco leading-none mb-3">
+                        BEMHES <span class="text-trator">GRUPO FAMILIAR</span>
+                    </h4>
+                    <p class="text-aco/80 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>                   
+                </div>
+                
+                <nav>
+                    <a href="index.html"
+                       class="inline-flex items-center gap-2 rounded-lg
+                              bg-[#944b20] px-5 py-3 text-white font-semibold
+                              shadow-lg transition-all duration-300
+                              hover:bg-[#783b19] hover:shadow-xl hover:-translate-x-1"
+                       title="Voltar para a página inicial">
+
+                        <!-- Seta para a esquerda -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="24" height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2.5"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+
+                        <span>Voltar</span>
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 2. CORPO DA PÁGINA (ABA "GRUPO FAMILIAR" & GESTÃO CRUD)               -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <!-- Barra Superior de Título e Ações -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 border-b-2 border-aco/10 pb-5">
+            <div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold uppercase text-petroleo tracking-wide flex items-center gap-2.5">
+                    <span class="w-3 h-8 bg-trator rounded-sm inline-block"></span>
+                    Cadastro de Grupo Familiar
+                </h2>
+                <p class="text-sm text-aco/70 mt-1 flex items-center gap-2">
+                    <span id="status-planilha" class="inline-flex items-center gap-1.5 font-medium text-petroleo">
+                        <span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span>
+                        Conectando à aba "GRUPO FAMILIAR" no Google Sheets...
+                    </span>
+                </p>
+            </div>
+            
+            <!-- Botões Principais de Ação -->
+            <div class="flex flex-wrap items-center gap-3">
+                <button 
+                    type="button"
+                    onclick="abrirModalConfigApi()"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-petroleo/10 hover:bg-petroleo hover:text-white text-petroleo text-sm font-semibold border border-petroleo/25 transition-all shadow-sm"
+                    title="Configurar URL do Google Apps Script para gravação em tempo real"
+                >
+                    <i data-lucide="link" class="w-4 h-4"></i>
+                    <span>API Google Script</span>
+                </button>
+
+                <button 
+                    type="button"
+                    onclick="carregarDadosGrupoFamiliar(true)"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cremeEscuro hover:bg-aco hover:text-white text-aco text-sm font-semibold border border-aco/20 transition-all shadow-sm"
+                    title="Recarregar dados da aba GRUPO FAMILIAR"
+                >
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-petroleo"></i>
+                    <span>Sincronizar Planilha</span>
+                </button>
+
+                <button 
+                    type="button"
+                    onclick="abrirModalFormulario('novo')"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-trator hover:bg-tratorHover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
+                >
+                    <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                    <span>Novo Grupo Familiar</span>
+                </button>
+
+                <button 
+                    type="button"
+                    onclick="window.location.href='Portal Cliente.html'"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-aco hover:bg-black text-creme text-sm font-bold shadow-md transition-all"
+                >
+                    <i data-lucide="users" class="w-4 h-4 text-ambar"></i>
+                    <span>Portal Clientes</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Pesquisa e Contadores -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-aco/15 mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="w-5 h-5 text-aco/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="campo-busca" 
+                    oninput="filtrarRegistros()"
+                    placeholder="Buscar por código, nome do grupo familiar, área ou qualquer campo..." 
+                    class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-creme/60 border border-aco/20 text-sm text-aco placeholder-aco/50 focus:outline-none focus:border-petroleo focus:bg-white transition-colors"
+                >
+            </div>
+
+            <div class="flex items-center justify-between md:justify-end gap-3 text-sm">
+                <div id="badge-modo-gravacao" class="px-3 py-2 rounded-xl bg-amber-100 text-amber-900 font-semibold border border-amber-300 text-xs">
+                    Leitura PubHTML
+                </div>
+                <div class="px-3.5 py-2 rounded-xl bg-petroleo/10 text-petroleo font-bold border border-petroleo/20">
+                    Total listado: <span id="contador-registros" class="text-trator">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container da Tabela de Grupo Familiar -->
+        <div class="bg-white rounded-2xl shadow-lg border-2 border-aco/15 border-b-petroleo card-industrial overflow-hidden">
+            
+            <!-- Estado de Carregamento -->
+            <div id="loading-box" class="py-16 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-petroleo/10 text-petroleo mb-4">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Carregando aba "GRUPO FAMILIAR"...</h3>
+                <p class="text-sm text-aco/60 mt-1">Buscando registros diretamente do Google Sheets.</p>
+            </div>
+
+            <!-- Tabela Responsiva -->
+            <div id="tabela-wrapper" class="hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr id="tabela-cabecalho" class="bg-aco text-creme font-display uppercase text-sm tracking-wider border-b-2 border-trator">
+                            <!-- Colunas injetadas via JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo" class="divide-y divide-aco/10 text-sm">
+                        <!-- Linhas injetadas via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado Vazio / Sem Resultados -->
+            <div id="empty-box" class="hidden py-14 px-4 text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cremeEscuro text-aco/50 mb-3">
+                    <i data-lucide="folder-open" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-display text-xl font-bold uppercase text-aco">Nenhum registro encontrado</h3>
+                <p class="text-sm text-aco/60 mt-1">Tente ajustar os termos da busca ou cadastre um novo grupo familiar.</p>
+            </div>
+        </div>
+
+        <!-- Nota informativa discreta -->
+        <p class="text-xs text-aco/60 mt-4 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-trator flex-shrink-0"></i>
+            <span>Dica: <strong>Area (ha)</strong> é calculado automaticamente (<strong>Area (Alqs) × 2,42</strong>) e o campo <strong>ATUALIZAR</strong> registra a data/hora de São Paulo no momento em que as informações são salvas.</span>
+        </p>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- 3. RODAPÉ (FOOTER) - MANTIDO ORIGINAL                                 -->
+    <!-- ===================================================================== -->
+    <footer class="bg-aco text-creme border-t-4 border-trator mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Identificação da Empresa -->
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span class="w-3 h-3 rounded-sm bg-trator inline-block"></span>
+                        <span class="font-display text-xl font-bold uppercase tracking-wider text-white">
+                            BEMHES 2027
+                        </span>
+                    </div>
+                    <p class="text-sm text-creme/75">
+                        Lubrificantes e Manutenção Especializada — Linha Pesada, Agrícola e Industrial.
+                    </p>
+                </div>
+
+                <!-- Contatos Institucionais -->
+                <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm text-creme/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-trator"></i>
+                        <span>Atendimento Técnico & Comercial</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-ambar"></i>
+                        <span>Qualidade Garantida</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha Inferior de Direitos Autorais -->
+            <div class="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-creme/60 gap-2">
+                <p>&copy; <span id="ano-atual">2026</span> BEMHES 2027. Todos os direitos reservados.</p>
+                <p>Portal Administrativo v1.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: FICHA COMPLETA DO REGISTRO (CONSULTA)                        -->
+    <!-- ===================================================================== -->
+    <div id="modal-detalhes" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <div class="flex items-start justify-between border-b border-aco/15 pb-4 mb-5 gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-petroleo text-white flex items-center justify-center flex-shrink-0 shadow">
+                        <i data-lucide="users-round" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span id="detalhe-badge-secundario" class="inline-block px-2.5 py-0.5 rounded bg-trator/15 text-trator font-mono font-bold text-xs uppercase tracking-wider mb-1">
+                            REGISTRO
+                        </span>
+                        <h3 id="detalhe-titulo" class="font-display text-2xl font-bold uppercase text-aco leading-tight">
+                            Detalhes do Grupo Familiar
+                        </h3>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalDetalhes()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors" title="Fechar">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div id="detalhes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Campos injetados dinamicamente -->
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-aco/15 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-detalhe-editar" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-petroleo hover:bg-petroleoHover text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                        <span>Editar</span>
+                    </button>
+                    <button type="button" id="btn-detalhe-excluir" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold transition-colors shadow-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Excluir</span>
+                    </button>
+                </div>
+
+                <button type="button" onclick="fecharModalDetalhes()" class="px-5 py-2 rounded-xl text-sm font-bold bg-aco text-creme hover:bg-black transition-colors">
+                    Fechar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: FORMULÁRIO PARA ADICIONAR OU EDITAR REGISTRO                 -->
+    <!-- ===================================================================== -->
+    <div id="modal-formulario" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-creme border-2 border-aco rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-8">
+            
+            <div class="flex items-center justify-between border-b border-aco/15 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div id="form-icon-box" class="w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center">
+                        <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="form-titulo" class="font-display text-xl sm:text-2xl font-bold uppercase text-aco">Novo Grupo Familiar</h3>
+                        <p id="form-subtitulo" class="text-xs text-aco/70">Preencha os campos correspondentes à aba GRUPO FAMILIAR</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalFormulario()" class="p-2 rounded-lg hover:bg-aco/10 text-aco transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="form-registro" onsubmit="salvarRegistro(event)">
+                <input type="hidden" id="registro-index-edicao" value="-1">
+                <input type="hidden" id="registro-modo-edicao" value="novo">
+                
+                <div id="form-campos-dinamicos" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- Campos gerados dinamicamente conforme as colunas da planilha -->
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
+                    <button type="button" onclick="fecharModalFormulario()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-salvar-form" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-trator hover:bg-tratorHover text-white shadow-md transition-colors flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Salvar na Planilha</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: CONFIRMAÇÃO DE EXCLUSÃO                                      -->
+    <!-- ===================================================================== -->
+    <div id="modal-excluir" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
+        <div class="bg-creme border-2 border-red-600 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="font-display text-xl font-bold uppercase text-aco">Excluir Registro</h3>
+                    <p class="text-xs text-aco/70">Esta ação removerá a linha da aba GRUPO FAMILIAR</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-aco/85 mb-6 leading-relaxed">
+                Tem certeza que deseja excluir o registro <strong id="excluir-nome-registro" class="text-red-700">---</strong>?
+            </p>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" onclick="fecharModalExcluir()" class="px-4 py-2 rounded-xl text-sm font-semibold text-aco/80 hover:bg-aco/10 transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-confirmar-exclusao" class="px-5 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-md transition-colors flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Sim, Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 4: CONFIGURAÇÃO DA URL DO GOOGLE APPS SCRIPT                    -->
+    <!-- ===================================================================== -->
+    <div id="modal-config-api" class="fixed inset-0 z-50 hidden items-center justify-center bg-aco/75 backdrop-blur-sm p-4">
+        <div class="bg-creme border-2 border-petroleo rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-aco/15 pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-petroleo text-white flex items-center justify-center">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-xl font-bold uppercase text-aco">Integração Google Apps Script</h3>
+                        <p class="text-xs text-aco/70">Necessário para gravar, editar e excluir direto no Google Sheets</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalConfigApi()" class="p-1.5 rounded-lg hover:bg-aco/10 text-aco">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-sm text-aco/85">
+                <p>Cole abaixo a URL de implantação do seu <strong>App da Web</strong> (terminada em <code class="bg-aco/10 px-1.5 py-0.5 rounded font-mono text-xs">/exec</code>):</p>
+                <input 
+                    type="url" 
+                    id="input-url-apps-script" 
+                    placeholder="https://script.google.com/macros/s/SEU_ID_AQUI/exec"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-aco/25 text-xs font-mono text-aco focus:outline-none focus:border-trator"
+                >
+                <p class="text-xs text-aco/65">
+                    Enquanto a URL não for configurada, os dados são lidos da planilha publicada e mantidos no cache local do navegador.
+                </p>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-aco/15 flex items-center justify-end gap-3">
+                <button type="button" onclick="fecharModalConfigApi()" class="px-4 py-2 rounded-xl text-sm font-semibold text-aco/75 hover:bg-aco/10">
+                    Cancelar
+                </button>
+                <button type="button" onclick="salvarUrlAppsScript()" class="px-5 py-2 rounded-xl text-sm font-bold bg-petroleo hover:bg-petroleoHover text-white shadow">
+                    Salvar URL e Sincronizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TOAST DE NOTIFICAÇÃO                                                  -->
+    <!-- ===================================================================== -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 bg-aco text-white px-4 py-3 rounded-xl shadow-xl border-l-4 border-trator text-sm font-medium">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-ambar"></i>
+        <span id="toast-msg">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SCRIPTS DE INTEGRAÇÃO COM A ABA "GRUPO FAMILIAR" & GOOGLE APPS SCRIPT -->
+    <!-- ===================================================================== -->
+    <script>
+        // Inicializa ícones e datas
+        lucide.createIcons();
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Sao_Paulo' };
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoesData);
+        document.getElementById('data-atual').textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
+        // =====================================================================
+        // CONFIGURAÇÕES DA PLANILHA GOOGLE E APPS SCRIPT
+        // =====================================================================
+        const PUB_ID_PLANILHA = '2PACX-1vTSl4l8NGRoPzd8UDHmjHbfErHehKlAaXEMHys9VjZSm5yEK3p2w6e5vTzX4jYhZ708PEUpdZYLw81I';
+        const PUBHTML_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pubhtml`;
+        const NOME_ABA_ALVO = 'GRUPO FAMILIAR';
+
+        // Cole aqui a URL do seu Google Apps Script (/exec) para deixar fixa no código
+        const APPS_SCRIPT_URL_PADRAO = '';
+
+        // Chaves do LocalStorage
+        const STORAGE_DADOS_KEY = 'bemhes_grupo_familiar_dados_v1';
+        const STORAGE_COLS_KEY = 'bemhes_grupo_familiar_cols_v1';
+        const STORAGE_API_URL_KEY = 'bemhes_grupo_familiar_api_url_v1';
+
+        // Estado global
+        let listaRegistros = [];
+        let colunasPlanilha = [];
+        let indiceParaExcluir = -1;
+
+        function obterUrlAppsScript() {
+            return (localStorage.getItem(STORAGE_API_URL_KEY) || APPS_SCRIPT_URL_PADRAO || '').trim();
+        }
+
+        function atualizarBadgeModo() {
+            const badge = document.getElementById('badge-modo-gravacao');
+            const url = obterUrlAppsScript();
+            if (url) {
+                badge.className = 'px-3 py-2 rounded-xl bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 text-xs';
+                badge.textContent = 'Google Script Ativo';
+            } else {
+                badge.className = 'px-3 py-2 rounded-xl bg-amber-100 text-amber-900 font-semibold border border-amber-300 text-xs';
+                badge.textContent = 'Modo Leitura + Cache Local';
+            }
+        }
+
+        function normalizarTexto(str) {
+            return (str || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toUpperCase();
+        }
+
+        // Identifica a coluna "Area (Alqs)"
+        function ehColunaAreaAlqs(colNorm) {
+            return colNorm === 'AREA (ALQS)' ||
+                   colNorm === 'AREA (ALQ)' ||
+                   colNorm === 'AREA ALQS' ||
+                   colNorm === 'AREA ALQ';
+        }
+
+        // Identifica a coluna "Area (ha)"
+        function ehColunaAreaHa(colNorm) {
+            return colNorm === 'AREA (HA)' ||
+                   colNorm === 'AREA HA';
+        }
+
+        // Identifica a coluna "ATUALIZAR"
+        function ehColunaAtualizar(colNorm) {
+            return colNorm === 'ATUALIZAR' ||
+                   colNorm === 'DATA ATUALIZACAO' ||
+                   colNorm === 'ULTIMA ATUALIZACAO';
+        }
+
+        // Retorna data e hora atuais no fuso horário de São Paulo (America/Sao_Paulo)
+        function obterDataHoraSaoPaulo(dataRef = new Date()) {
+            const partes = new Intl.DateTimeFormat('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).formatToParts(dataRef);
+
+            const mapa = {};
+            partes.forEach(p => {
+                if (p.type !== 'literal') mapa[p.type] = p.value;
+            });
+
+            return `${mapa.day}/${mapa.month}/${mapa.year} ${mapa.hour}:${mapa.minute}:${mapa.second}`;
+        }
+
+        // Atualiza o campo visual "ATUALIZAR" no formulário com a data/hora de São Paulo
+        function atualizarCampoDataHoraSaoPauloNoFormulario() {
+            const inputAtualizar = document.getElementById('input-campo-atualizar');
+            if (inputAtualizar) {
+                inputAtualizar.value = obterDataHoraSaoPaulo();
+            }
+        }
+
+        // Converte número formatado em PT-BR ou EN para float
+        function parseNumeroDecimal(valor) {
+            if (valor === null || valor === undefined || valor === '') return NaN;
+            let str = valor.toString().trim();
+            if (str.includes(',') && str.includes('.')) {
+                str = str.replace(/\./g, '').replace(',', '.');
+            } else if (str.includes(',')) {
+                str = str.replace(',', '.');
+            }
+            return parseFloat(str);
+        }
+
+        // Calcula Area (ha) = Area (Alqs) * 2,42
+        function calcularAreaHaDeAlqs(valorAlqs) {
+            const num = parseNumeroDecimal(valorAlqs);
+            if (isNaN(num)) return '';
+            const resultado = num * 2.42;
+            return resultado.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Atualiza o campo "Area (ha)" no formulário em tempo real
+        function atualizarAreaHaAutomatico(valorAlqs) {
+            const inputHa = document.getElementById('input-area-ha');
+            if (!inputHa) return;
+            inputHa.value = calcularAreaHaDeAlqs(valorAlqs);
+        }
+
+        function atualizarStatus(texto, tipo = 'ok') {
+            const el = document.getElementById('status-planilha');
+            if (tipo === 'loading') {
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-ambar animate-ping"></span> <span>${texto}</span>`;
+            } else if (tipo === 'erro') {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> <span class="text-red-700">${texto}</span>`;
+            } else {
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> <span class="text-aco/80">${texto}</span>`;
+            }
+        }
+
+        // =====================================================================
+        // DESCOBERTA DO GID DA ABA "GRUPO FAMILIAR" NO PUBHTML
+        // =====================================================================
+        function extrairGidPorNomeAba(htmlText, nomeAbaAlvo) {
+            const alvoNorm = normalizarTexto(nomeAbaAlvo);
+
+            const regexAba = /items\.push\(\{name:\s*"([^"]+)"[^}]*?gid:\s*"(\d+)"/gi;
+            let match;
+            while ((match = regexAba.exec(htmlText)) !== null) {
+                if (normalizarTexto(match[1]) === alvoNorm) {
+                    return match[2];
+                }
+            }
+
+            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+            const elementos = doc.querySelectorAll('a, li, button, span');
+            for (const el of elementos) {
+                if (normalizarTexto(el.textContent) === alvoNorm) {
+                    const href = el.getAttribute('href') || '';
+                    const idAttr = el.id || '';
+                    const mHref = href.match(/gid=(\d+)/);
+                    const mId = idAttr.match(/(\d+)/);
+                    if (mHref) return mHref[1];
+                    if (mId) return mId[1];
+                }
+            }
+
+            return null;
+        }
+
+        // =====================================================================
+        // CARREGAMENTO DOS DADOS DA ABA "GRUPO FAMILIAR"
+        // =====================================================================
+        async function carregarDadosGrupoFamiliar(forcarAtualizacao = false) {
+            atualizarBadgeModo();
+            atualizarStatus(`Sincronizando aba "${NOME_ABA_ALVO}"...`, 'loading');
+            document.getElementById('loading-box').classList.remove('hidden');
+            document.getElementById('tabela-wrapper').classList.add('hidden');
+            document.getElementById('empty-box').classList.add('hidden');
+
+            const scriptUrl = obterUrlAppsScript();
+
+            if (scriptUrl) {
+                try {
+                    const resp = await fetch(scriptUrl);
+                    const json = await resp.json();
+
+                    if (json.status === 'success') {
+                        colunasPlanilha = (json.headers || []).filter(c => c && c.trim() !== '');
+                        listaRegistros = json.data || [];
+                        salvarCacheLocal();
+                        atualizarStatus(`Conectado ao Google Sheets (${listaRegistros.length} registros na aba "${NOME_ABA_ALVO}")`, 'ok');
+                        renderizarTabela();
+                        if (forcarAtualizacao) mostrarToast('Dados sincronizados via Google Apps Script!');
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Falha ao consultar Apps Script via GET, tentando via planilha publicada:', e);
+                }
+            }
+
+            try {
+                const respHtml = await fetch(PUBHTML_URL);
+                if (!respHtml.ok) throw new Error('Não foi possível acessar a planilha publicada.');
+                const htmlText = await respHtml.text();
+
+                const gidGrupoFamiliar = extrairGidPorNomeAba(htmlText, NOME_ABA_ALVO);
+                if (!gidGrupoFamiliar) {
+                    throw new Error(`A aba "${NOME_ABA_ALVO}" não foi localizada na planilha publicada.`);
+                }
+
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB_ID_PLANILHA}/pub?gid=${gidGrupoFamiliar}&single=true&output=csv`;
+                const respCsv = await fetch(csvUrl);
+                if (!respCsv.ok) throw new Error('Erro ao baixar CSV da aba GRUPO FAMILIAR.');
+                const csvText = await respCsv.text();
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim()
+                });
+
+                const colsDetectadas = (parsed.meta.fields || []).filter(c => c && c.trim() !== '');
+                if (colsDetectadas.length > 0) {
+                    colunasPlanilha = colsDetectadas;
+                }
+
+                listaRegistros = (parsed.data || [])
+                    .filter(row => Object.values(row).some(v => v && v.toString().trim() !== ''))
+                    .map((row, idx) => ({
+                        ...row,
+                        _rowIndex: idx + 2
+                    }));
+
+                salvarCacheLocal();
+                atualizarStatus(`Sincronizado com "${NOME_ABA_ALVO}" (${listaRegistros.length} registros)`, 'ok');
+                renderizarTabela();
+                if (forcarAtualizacao) mostrarToast('Planilha sincronizada com sucesso!');
+
+            } catch (erro) {
+                console.error('Erro ao ler aba GRUPO FAMILIAR:', erro);
+
+                const dadosCache = localStorage.getItem(STORAGE_DADOS_KEY);
+                const colsCache = localStorage.getItem(STORAGE_COLS_KEY);
+
+                if (dadosCache && colsCache) {
+                    listaRegistros = JSON.parse(dadosCache);
+                    colunasPlanilha = JSON.parse(colsCache);
+                    atualizarStatus(`Exibindo cache local (${listaRegistros.length} registros)`, 'erro');
+                } else {
+                    if (colunasPlanilha.length === 0) {
+                        colunasPlanilha = ['ID', 'GRUPO FAMILIAR', 'Area (Alqs)', 'Area (ha)', 'ATUALIZAR'];
+                    }
+                    atualizarStatus('Não foi possível conectar à planilha. Verifique a publicação ou a API.', 'erro');
+                }
+                renderizarTabela();
+            }
+        }
+
+        function salvarCacheLocal() {
+            try {
+                localStorage.setItem(STORAGE_DADOS_KEY, JSON.stringify(listaRegistros));
+                localStorage.setItem(STORAGE_COLS_KEY, JSON.stringify(colunasPlanilha));
+            } catch (e) {
+                console.warn('Erro ao salvar cache local:', e);
+            }
+        }
+
+        // =====================================================================
+        // RENDERIZAÇÃO DINÂMICA DA TABELA
+        // =====================================================================
+        function renderizarTabela(filtro = '') {
+            const theadRow = document.getElementById('tabela-cabecalho');
+            const tbody = document.getElementById('tabela-corpo');
+            const loadingBox = document.getElementById('loading-box');
+            const tabelaWrapper = document.getElementById('tabela-wrapper');
+            const emptyBox = document.getElementById('empty-box');
+            const contador = document.getElementById('contador-registros');
+
+            loadingBox.classList.add('hidden');
+            theadRow.innerHTML = '';
+            tbody.innerHTML = '';
+
+            colunasPlanilha.forEach(col => {
+                const th = document.createElement('th');
+                th.className = 'py-4 px-4 sm:px-5 whitespace-nowrap';
+                th.textContent = col;
+                theadRow.appendChild(th);
+            });
+
+            const thAcoes = document.createElement('th');
+            thAcoes.className = 'py-4 px-4 sm:px-5 text-right whitespace-nowrap';
+            thAcoes.textContent = 'Ações';
+            theadRow.appendChild(thAcoes);
+
+            const termo = normalizarTexto(filtro);
+
+            const filtrados = listaRegistros
+                .map((registro, indexOriginal) => ({ registro, indexOriginal }))
+                .filter(({ registro }) => {
+                    if (!termo) return true;
+                    return colunasPlanilha.some(col => normalizarTexto(registro[col]).includes(termo));
+                });
+
+            contador.textContent = filtrados.length;
+
+            if (filtrados.length === 0) {
+                tabelaWrapper.classList.add('hidden');
+                emptyBox.classList.remove('hidden');
+                return;
+            }
+
+            emptyBox.classList.add('hidden');
+            tabelaWrapper.classList.remove('hidden');
+
+            filtrados.forEach(({ registro, indexOriginal }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-creme/80 transition-colors group';
+
+                colunasPlanilha.forEach((col, colIdx) => {
+                    const td = document.createElement('td');
+                    const valor = (registro[col] || '').toString().trim();
+                    const colNorm = normalizarTexto(col);
+
+                    if (colNorm === 'ID' || colNorm.includes('CODIGO') || colNorm.includes('CÓDIGO')) {
+                        td.className = 'py-3.5 px-4 sm:px-5 font-mono font-bold text-trator whitespace-nowrap';
+                        td.innerHTML = `<span class="px-2.5 py-1 rounded-md bg-trator/10 border border-trator/20 text-xs">${escapeHTML(valor || '—')}</span>`;
+                    } else if (colIdx === 0 || colNorm.includes('GRUPO') || colNorm.includes('NOME')) {
+                        td.className = 'py-3.5 px-4 sm:px-5 font-semibold text-aco';
+                        td.innerHTML = `
+                            <button 
+                                type="button" 
+                                onclick="abrirModalDetalhes(${indexOriginal})"
+                                class="text-left text-aco hover:text-trator font-bold underline decoration-trator/40 hover:decoration-trator underline-offset-4 transition-colors inline-flex items-center gap-1.5"
+                                title="Consultar detalhes"
+                            >
+                                <span>${escapeHTML(valor || '—')}</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5 text-trator opacity-70 group-hover:opacity-100"></i>
+                            </button>
+                        `;
+                    } else if (ehColunaAtualizar(colNorm)) {
+                        td.className = 'py-3.5 px-4 sm:px-5 font-mono text-xs text-petroleo font-semibold whitespace-nowrap';
+                        td.textContent = valor || '—';
+                    } else {
+                        td.className = 'py-3.5 px-4 sm:px-5 text-aco/85';
+                        td.textContent = valor || '—';
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                const tdAcoes = document.createElement('td');
+                tdAcoes.className = 'py-3.5 px-4 sm:px-5 text-right whitespace-nowrap';
+                tdAcoes.innerHTML = `
+                    <div class="inline-flex items-center justify-end gap-1.5">
+                        <button 
+                            type="button"
+                            onclick="abrirModalDetalhes(${indexOriginal})"
+                            class="p-2 rounded-lg bg-cremeEscuro hover:bg-aco hover:text-white text-aco transition-colors"
+                            title="Consultar Registro"
+                        >
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onclick="abrirModalFormulario('editar', ${indexOriginal})"
+                            class="p-2 rounded-lg bg-petroleo/10 hover:bg-petroleo text-petroleo hover:text-white transition-colors"
+                            title="Editar Registro"
+                        >
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            onclick="abrirModalExcluir(${indexOriginal})"
+                            class="p-2 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors"
+                            title="Excluir Registro"
+                        >
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                tr.appendChild(tdAcoes);
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+        }
+
+        function filtrarRegistros() {
+            const termo = document.getElementById('campo-busca').value;
+            renderizarTabela(termo);
+        }
+
+        // =====================================================================
+        // MODAL 1: CONSULTA COMPLETA
+        // =====================================================================
+        function abrirModalDetalhes(index) {
+            const registro = listaRegistros[index];
+            if (!registro) return;
+
+            const primeiraCol = colunasPlanilha[0];
+            const segundaCol = colunasPlanilha[1] || colunasPlanilha[0];
+
+            document.getElementById('detalhe-badge-secundario').textContent = `${primeiraCol}: ${registro[primeiraCol] || 'S/N'}`;
+            document.getElementById('detalhe-titulo').textContent = registro[segundaCol] || registro[primeiraCol] || 'Grupo Familiar';
+
+            const grid = document.getElementById('detalhes-grid');
+            grid.innerHTML = '';
+
+            colunasPlanilha.forEach(col => {
+                const valor = (registro[col] || '').toString().trim();
+                const card = document.createElement('div');
+                card.className = 'bg-white p-3.5 rounded-xl border border-aco/15 shadow-sm';
+                card.innerHTML = `
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-petroleo mb-1">
+                        ${escapeHTML(col)}
+                    </span>
+                    <span class="block text-sm font-semibold text-aco break-words">
+                        ${valor ? escapeHTML(valor) : '<span class="text-aco/35 italic font-normal">Não informado</span>'}
+                    </span>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('btn-detalhe-editar').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalFormulario('editar', index);
+            };
+            document.getElementById('btn-detalhe-excluir').onclick = () => {
+                fecharModalDetalhes();
+                abrirModalExcluir(index);
+            };
+
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalDetalhes() {
+            const modal = document.getElementById('modal-detalhes');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =====================================================================
+        // MODAL 2: ADICIONAR / EDITAR REGISTRO (COM CÁLCULO AREA (HA) E ATUALIZAR)
+        // =====================================================================
+        function abrirModalFormulario(modo, index = -1) {
+            const modal = document.getElementById('modal-formulario');
+            const titulo = document.getElementById('form-titulo');
+            const subtitulo = document.getElementById('form-subtitulo');
+            const iconBox = document.getElementById('form-icon-box');
+            const inputIndex = document.getElementById('registro-index-edicao');
+            const inputModo = document.getElementById('registro-modo-edicao');
+            const containerCampos = document.getElementById('form-campos-dinamicos');
+
+            inputIndex.value = index;
+            inputModo.value = modo;
+            containerCampos.innerHTML = '';
+
+            const registroAtual = (modo === 'editar' && index >= 0) ? listaRegistros[index] : {};
+
+            if (modo === 'novo') {
+                titulo.textContent = 'Adicionar Grupo Familiar';
+                subtitulo.textContent = 'O novo registro será inserido na aba GRUPO FAMILIAR';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-trator text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="folder-plus" class="w-5 h-5"></i>';
+            } else {
+                titulo.textContent = 'Editar Grupo Familiar';
+                subtitulo.textContent = 'Ao salvar, o campo ATUALIZAR receberá a data e hora de São Paulo';
+                iconBox.className = 'w-10 h-10 rounded-xl bg-petroleo text-white flex items-center justify-center';
+                iconBox.innerHTML = '<i data-lucide="pencil" class="w-5 h-5"></i>';
+            }
+
+            colunasPlanilha.forEach((col, idx) => {
+                const colNorm = normalizarTexto(col);
+                const ehAlqs = ehColunaAreaAlqs(colNorm);
+                const ehHa = ehColunaAreaHa(colNorm);
+                const ehAtualizar = ehColunaAtualizar(colNorm);
+                let valorInicial = (modo === 'editar') ? (registroAtual[col] || '') : '';
+
+                if (modo === 'novo' && (colNorm === 'ID' || colNorm.includes('CODIGO') || colNorm.includes('CÓDIGO'))) {
+                    valorInicial = sugerirProximoCodigo(col);
+                }
+
+                if (ehAtualizar) {
+                    valorInicial = obterDataHoraSaoPaulo();
+                }
+
+                const div = document.createElement('div');
+                if (colNorm.includes('OBSERVA') || colNorm.includes('DESCRICAO') || colNorm.includes('DESCRIÇÃO') || colNorm.includes('GRUPO')) {
+                    div.className = 'sm:col-span-2';
+                }
+
+                let fieldId = `campo-form-${idx}`;
+                if (ehAlqs) fieldId = 'input-area-alqs';
+                else if (ehHa) fieldId = 'input-area-ha';
+                else if (ehAtualizar) fieldId = 'input-campo-atualizar';
+
+                const estiloCampo = (ehHa || ehAtualizar)
+                    ? 'bg-cremeEscuro/70 font-bold text-petroleo cursor-not-allowed'
+                    : 'bg-white text-aco';
+
+                const atributosExtras = ehAlqs
+                    ? `inputmode="decimal" oninput="atualizarAreaHaAutomatico(this.value)" placeholder="Ex: 10,5"`
+                    : ehHa
+                        ? `readonly placeholder="Calculado automaticamente (Alqs × 2,42)"`
+                        : ehAtualizar
+                            ? `readonly placeholder="Data e hora de São Paulo ao salvar"`
+                            : `placeholder="Digite ${escapeHTML(col.toLowerCase())}"`;
+
+                const dicaLabel = ehHa
+                    ? `<span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Area (Alqs) × 2,42)</span>`
+                    : ehAtualizar
+                        ? `<span class="text-[10px] font-normal text-aco/60 normal-case ml-1">(Horário São Paulo ao salvar)</span>`
+                        : '';
+
+                div.innerHTML = `
+                    <label for="${fieldId}" class="block text-xs font-bold uppercase text-petroleo mb-1">
+                        ${escapeHTML(col)} ${idx === 0 ? '<span class="text-trator">*</span>' : ''} ${dicaLabel}
+                    </label>
+                    <input 
+                        type="text" 
+                        id="${fieldId}"
+                        data-coluna="${escapeHTML(col)}"
+                        value="${escapeHTML(valorInicial)}"
+                        ${idx === 0 ? 'required' : ''}
+                        ${atributosExtras}
+                        class="w-full px-3.5 py-2.5 rounded-xl ${estiloCampo} border border-aco/25 text-sm focus:outline-none focus:border-trator transition-colors"
+                    >
+                `;
+                containerCampos.appendChild(div);
+            });
+
+            const inputAlqs = document.getElementById('input-area-alqs');
+            if (inputAlqs && inputAlqs.value.trim() !== '') {
+                atualizarAreaHaAutomatico(inputAlqs.value);
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function sugerirProximoCodigo(nomeColuna) {
+            let maior = 0;
+            listaRegistros.forEach(reg => {
+                const val = (reg[nomeColuna] || '').toString();
+                const num = parseInt(val.replace(/\D/g, ''), 10);
+                if (!isNaN(num) && num > maior) maior = num;
+            });
+            return maior > 0 ? String(maior + 1) : '1';
+        }
+
+        function fecharModalFormulario() {
+            const modal = document.getElementById('modal-formulario');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function salvarRegistro(event) {
+            event.preventDefault();
+
+            // Garante que Area (ha) e ATUALIZAR (horário exato de São Paulo no momento do salvamento) estejam atualizados
+            const inputAlqs = document.getElementById('input-area-alqs');
+            if (inputAlqs) {
+                atualizarAreaHaAutomatico(inputAlqs.value);
+            }
+
+            const agoraSaoPaulo = obterDataHoraSaoPaulo();
+            const inputAtualizar = document.getElementById('input-campo-atualizar');
+            if (inputAtualizar) {
+                inputAtualizar.value = agoraSaoPaulo;
+            }
+
+            const btnSalvar = document.getElementById('btn-salvar-form');
+            const index = parseInt(document.getElementById('registro-index-edicao').value, 10);
+            const modo = document.getElementById('registro-modo-edicao').value;
+            const inputs = document.querySelectorAll('#form-campos-dinamicos input[data-coluna]');
+
+            const registroAnterior = (index >= 0 && listaRegistros[index]) ? { ...listaRegistros[index] } : {};
+            const novoObjeto = { ...registroAnterior };
+
+            inputs.forEach(input => {
+                const col = input.getAttribute('data-coluna');
+                novoObjeto[col] = input.value.trim();
+            });
+
+            // Assegura a gravação no campo "ATUALIZAR" mesmo que a coluna tenha grafia similar
+            const chaveAtualizar = colunasPlanilha.find(c => ehColunaAtualizar(normalizarTexto(c)));
+            if (chaveAtualizar) {
+                novoObjeto[chaveAtualizar] = agoraSaoPaulo;
+            }
+
+            const scriptUrl = obterUrlAppsScript();
+
+            if (scriptUrl) {
+                try {
+                    btnSalvar.disabled = true;
+                    btnSalvar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>Gravando...</span>';
+                    lucide.createIcons();
+
+                    const payload = {
+                        action: modo === 'editar' ? 'update' : 'create',
+                        rowIndex: registroAnterior._rowIndex || (index + 2),
+                        updatedAtSaoPaulo: agoraSaoPaulo,
+                        data: novoObjeto
+                    };
+
+                    const resp = await fetch(scriptUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const resultado = await resp.json();
+                    if (resultado.status !== 'success') {
+                        throw new Error(resultado.message || 'Erro retornado pelo Google Sheets.');
+                    }
+
+                    fecharModalFormulario();
+                    mostrarToast(
+                        modo === 'editar'
+                            ? `Registro atualizado (${agoraSaoPaulo} - SP)!`
+                            : `Novo registro salvo (${agoraSaoPaulo} - SP)!`
+                    );
+                    await carregarDadosGrupoFamiliar(false);
+                } catch (erro) {
+                    alert('Erro ao gravar na planilha Google: ' + erro.message);
+                } finally {
+                    btnSalvar.disabled = false;
+                    btnSalvar.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar na Planilha</span>';
+                    lucide.createIcons();
+                }
+            } else {
+                if (index >= 0) {
+                    listaRegistros[index] = novoObjeto;
+                    mostrarToast(`Atualizado localmente (${agoraSaoPaulo} - SP)! Configure a API Google Script para gravar na planilha.`);
+                } else {
+                    novoObjeto._rowIndex = listaRegistros.length + 2;
+                    listaRegistros.push(novoObjeto);
+                    mostrarToast(`Adicionado localmente (${agoraSaoPaulo} - SP)! Configure a API Google Script para gravar na planilha.`);
+                }
+                salvarCacheLocal();
+                fecharModalFormulario();
+                filtrarRegistros();
+                atualizarStatus(`Cache local atualizado (${listaRegistros.length} registros)`, 'ok');
+            }
+        }
+
+        // =====================================================================
+        // MODAL 3: EXCLUIR REGISTRO
+        // =====================================================================
+        function abrirModalExcluir(index) {
+            const registro = listaRegistros[index];
+            if (!registro) return;
+
+            indiceParaExcluir = index;
+            const col1 = colunasPlanilha[0];
+            const col2 = colunasPlanilha[1] || col1;
+            const label = col1 !== col2 && registro[col1] && registro[col2]
+                ? `${registro[col1]} - ${registro[col2]}`
+                : (registro[col2] || registro[col1] || 'este registro');
+
+            document.getElementById('excluir-nome-registro').textContent = label;
+            document.getElementById('btn-confirmar-exclusao').onclick = confirmarExclusao;
+
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalExcluir() {
+            const modal = document.getElementById('modal-excluir');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            indiceParaExcluir = -1;
+        }
+
+        async function confirmarExclusao() {
+            if (indiceParaExcluir < 0 || indiceParaExcluir >= listaRegistros.length) return;
+
+            const registro = listaRegistros[indiceParaExcluir];
+            const scriptUrl = obterUrlAppsScript();
+            const btnExcluir = document.getElementById('btn-confirmar-exclusao');
+
+            if (scriptUrl) {
+                try {
+                    btnExcluir.disabled = true;
+                    btnExcluir.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>Excluindo...</span>';
+                    lucide.createIcons();
+
+                    const resp = await fetch(scriptUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            rowIndex: registro._rowIndex || (indiceParaExcluir + 2)
+                        })
+                    });
+
+                    const resultado = await resp.json();
+                    if (resultado.status !== 'success') {
+                        throw new Error(resultado.message || 'Falha ao excluir na planilha.');
+                    }
+
+                    fecharModalExcluir();
+                    mostrarToast('Registro excluído diretamente da planilha Google!');
+                    await carregarDadosGrupoFamiliar(false);
+                } catch (erro) {
+                    alert('Erro ao excluir na planilha Google: ' + erro.message);
+                } finally {
+                    btnExcluir.disabled = false;
+                    btnExcluir.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i> <span>Sim, Excluir</span>';
+                    lucide.createIcons();
+                }
+            } else {
+                listaRegistros.splice(indiceParaExcluir, 1);
+                salvarCacheLocal();
+                filtrarRegistros();
+                atualizarStatus(`Cache local atualizado (${listaRegistros.length} registros)`, 'ok');
+                mostrarToast('Registro removido localmente!');
+                fecharModalExcluir();
+            }
+        }
+
+        // =====================================================================
+        // MODAL 4: CONFIGURAÇÃO DA API GOOGLE APPS SCRIPT
+        // =====================================================================
+        function abrirModalConfigApi() {
+            document.getElementById('input-url-apps-script').value = obterUrlAppsScript();
+            const modal = document.getElementById('modal-config-api');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function fecharModalConfigApi() {
+            const modal = document.getElementById('modal-config-api');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function salvarUrlAppsScript() {
+            const url = document.getElementById('input-url-apps-script').value.trim();
+            localStorage.setItem(STORAGE_API_URL_KEY, url);
+            fecharModalConfigApi();
+            atualizarBadgeModo();
+            await carregarDadosGrupoFamiliar(true);
+        }
+
+        // =====================================================================
+        // UTILITÁRIOS
+        // =====================================================================
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = mensagem;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 4000);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                fecharModalDetalhes();
+                fecharModalFormulario();
+                fecharModalExcluir();
+                fecharModalConfigApi();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => carregarDadosGrupoFamiliar(false));
+    </script>
+</body>
+</html>
